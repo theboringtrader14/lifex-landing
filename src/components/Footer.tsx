@@ -33,9 +33,9 @@ export default function Footer() {
   return (
     <footer
       style={{
-        padding: 'var(--space-16) var(--space-8) var(--space-10)',
+        padding: '45px 40px 40px',
         borderTop: '1px solid var(--border-subtle)',
-        background: 'rgba(3,3,8,0.6)',
+        background: 'var(--bg)',
       }}
     >
       <div
@@ -56,37 +56,18 @@ export default function Footer() {
               style={{
                 fontFamily: 'var(--font-display)',
                 fontWeight: 700,
-                fontSize: 15,
-                letterSpacing: '0.18em',
-                background: 'linear-gradient(135deg, #ffffff 0%, #a78bfa 55%, #38bdf8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                fontSize: 18,
+                letterSpacing: '-0.02em',
+                color: 'var(--text)',
               }}
             >
-              LIFEX
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 9,
-                fontWeight: 600,
-                letterSpacing: '0.22em',
-                color: 'var(--text-muted)',
-                padding: '2px 5px',
-                border: '1px solid var(--border-default)',
-                borderRadius: 4,
-                position: 'relative',
-                top: -6,
-              }}
-            >
-              OS
+              LIFEX OS
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--text-muted)', maxWidth: 280 }}>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--text-mute)', maxWidth: 280 }}>
             One OS for your entire life. Trade smarter, invest wiser, spend consciously, travel freer.
           </p>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', letterSpacing: '0.06em' }}>
             lifexos.co.in
           </span>
         </div>
@@ -100,7 +81,7 @@ export default function Footer() {
                 fontWeight: 600,
                 letterSpacing: '0.16em',
                 textTransform: 'uppercase',
-                color: 'var(--text-muted)',
+                color: 'var(--text-mute)',
                 marginBottom: 2,
               }}
             >
@@ -112,11 +93,11 @@ export default function Footer() {
                 href={l.href}
                 style={{
                   fontSize: 13.5,
-                  color: 'var(--text-secondary)',
+                  color: 'var(--text-dim)',
                   transition: 'color 160ms ease',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-dim)')}
               >
                 {l.label}
               </a>
@@ -128,7 +109,7 @@ export default function Footer() {
       <div
         style={{
           maxWidth: 1200,
-          margin: 'var(--space-12) auto 0',
+          margin: '36px auto 0',
           paddingTop: 'var(--space-6)',
           borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
@@ -138,10 +119,16 @@ export default function Footer() {
           flexWrap: 'wrap',
         }}
       >
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            color: 'var(--text-mute)',
+          }}
+        >
           © {new Date().getFullYear()} LIFEX OS. Built in India.
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-mute)', letterSpacing: '0.06em' }}>
           v1.0.0 · Phase 1 Live
         </span>
       </div>

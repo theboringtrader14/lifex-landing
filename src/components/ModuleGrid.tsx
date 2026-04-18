@@ -37,7 +37,7 @@ export default function ModuleGrid({ onOpenModule }: Props) {
               fontSize: 11,
               fontWeight: 600,
               letterSpacing: '0.24em',
-              color: 'var(--text-muted)',
+              color: 'var(--accent)',
               textTransform: 'uppercase',
             }}
           >
@@ -47,26 +47,26 @@ export default function ModuleGrid({ onOpenModule }: Props) {
             style={{
               margin: 0,
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(34px, 4.6vw, 52px)',
+              fontSize: 'clamp(36px, 5vw, 56px)',
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1.08,
               maxWidth: 860,
-              color: 'var(--text-primary)',
+              color: 'var(--text)',
             }}
           >
-            7 Modules. One Platform. Your LIFEX.
+            7 Modules. One Platform.<br />Your LIFEX.
           </h2>
           <p
             style={{
               margin: 0,
               fontSize: 'clamp(15px, 1.3vw, 18px)',
               lineHeight: 1.6,
-              color: 'var(--text-secondary)',
-              maxWidth: 640,
+              color: 'var(--text-dim)',
+              maxWidth: '560px',
             }}
           >
-            Every module is a standalone product. Together, they form a command center for your money, health, and time — with a shared AI layer that connects the dots.
+            Subscribe to what you need. Add modules as you grow. No lock-in, cancel anytime.
           </p>
         </motion.div>
 
@@ -74,7 +74,7 @@ export default function ModuleGrid({ onOpenModule }: Props) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
             gap: 'var(--space-6)',
           }}
         >

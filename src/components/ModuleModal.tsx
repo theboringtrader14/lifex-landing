@@ -10,11 +10,12 @@ interface Props {
   onClose: () => void
 }
 
-const statusColor: Record<string, { fg: string; bg: string; border: string }> = {
-  LIVE: { fg: '#34d399', bg: 'rgba(16,185,129,0.10)', border: 'rgba(16,185,129,0.28)' },
-  BETA: { fg: '#fbbf24', bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.28)' },
-  BUILDING: { fg: '#60a5fa', bg: 'rgba(59,130,246,0.10)', border: 'rgba(59,130,246,0.28)' },
-  COMING_SOON: { fg: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.24)' },
+// Maps Module status (ALLCAPS enum) to CSS class suffix
+const statusClassMap: Record<string, string> = {
+  LIVE: 'live',
+  BETA: 'beta',
+  BUILDING: 'building',
+  COMING_SOON: 'soon',
 }
 
 export default function ModuleModal({ module, onClose }: Props) {
@@ -51,7 +52,7 @@ export default function ModuleModal({ module, onClose }: Props) {
             position: 'fixed',
             inset: 0,
             zIndex: 100,
-            background: 'rgba(3, 3, 8, 0.72)',
+            background: 'rgba(0,0,0,0.55)',
             backdropFilter: 'blur(14px)',
             WebkitBackdropFilter: 'blur(14px)',
             display: 'flex',
@@ -76,10 +77,9 @@ export default function ModuleModal({ module, onClose }: Props) {
               overflow: 'hidden',
               display: 'grid',
               gridTemplateColumns: '1fr',
-              background: 'linear-gradient(180deg, rgba(12,12,20,0.98) 0%, rgba(6,6,12,0.98) 100%)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 'var(--radius-xl)',
-              boxShadow: '0 30px 80px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.02)',
+              background: 'var(--bg-surface)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--neu-raised-lg)',
             }}
           >
             <div
@@ -100,10 +100,8 @@ export default function ModuleModal({ module, onClose }: Props) {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 'var(--space-5)',
-                  background: module.gradient
-                    ? `linear-gradient(160deg, ${module.color}22 0%, rgba(3,3,8,0.3) 100%)`
-                    : `linear-gradient(160deg, ${module.color}22 0%, rgba(3,3,8,0.3) 100%)`,
-                  borderRight: '1px solid rgba(255,255,255,0.06)',
+                  background: `${module.color}14`,
+                  borderRight: '1px solid var(--border-subtle)',
                   overflow: 'hidden',
                 }}
               >
@@ -131,28 +129,15 @@ export default function ModuleModal({ module, onClose }: Props) {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: module.gradient ?? `${module.color}1a`,
+                      background: `${module.color}1a`,
                       border: `1px solid ${module.color}44`,
-                      color: module.gradient ? '#fff' : module.color,
+                      color: module.color,
                     }}
                   >
                     <ModuleIcon iconKey={module.iconKey} size={32} />
                   </div>
 
-                  <span
-                    style={{
-                      alignSelf: 'flex-start',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: '0.14em',
-                      padding: '4px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      color: statusColor[module.status].fg,
-                      background: statusColor[module.status].bg,
-                      border: `1px solid ${statusColor[module.status].border}`,
-                    }}
-                  >
+                  <span className={`status status-${statusClassMap[module.status] ?? 'soon'}`}>
                     {statusLabel[module.status]}
                   </span>
 
@@ -165,7 +150,7 @@ export default function ModuleModal({ module, onClose }: Props) {
                       fontWeight: 700,
                       letterSpacing: '-0.02em',
                       lineHeight: 1.08,
-                      color: 'var(--text-primary)',
+                      color: 'var(--text)',
                     }}
                   >
                     {module.name}
@@ -176,7 +161,7 @@ export default function ModuleModal({ module, onClose }: Props) {
                       margin: 0,
                       fontSize: 15,
                       lineHeight: 1.6,
-                      color: 'var(--text-secondary)',
+                      color: 'var(--text-dim)',
                     }}
                   >
                     {module.tagline}
@@ -187,7 +172,7 @@ export default function ModuleModal({ module, onClose }: Props) {
                       margin: 0,
                       fontSize: 14.5,
                       lineHeight: 1.65,
-                      color: 'var(--text-muted)',
+                      color: 'var(--text-dim)',
                     }}
                   >
                     {module.description}
@@ -197,13 +182,13 @@ export default function ModuleModal({ module, onClose }: Props) {
                     style={{
                       marginTop: 'auto',
                       paddingTop: 'var(--space-4)',
-                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      borderTop: '1px solid var(--border-subtle)',
                     }}
                   >
-                    <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--text-mute)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
                       Starting at
                     </div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, color: 'var(--text-primary)', fontWeight: 600 }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, color: 'var(--text)', fontWeight: 600 }}>
                       {module.startingPrice ? `₹${module.startingPrice}/mo` : 'Pricing TBD'}
                     </div>
                   </div>
@@ -228,7 +213,7 @@ export default function ModuleModal({ module, onClose }: Props) {
                       fontSize: 11,
                       fontWeight: 600,
                       letterSpacing: '0.18em',
-                      color: 'var(--text-muted)',
+                      color: 'var(--text-mute)',
                       textTransform: 'uppercase',
                       marginBottom: 'var(--space-4)',
                     }}
@@ -248,14 +233,14 @@ export default function ModuleModal({ module, onClose }: Props) {
                         style={{
                           padding: 'var(--space-4)',
                           borderRadius: 'var(--radius-md)',
-                          background: 'rgba(255,255,255,0.02)',
-                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg)',
+                          boxShadow: 'var(--neu-inset)',
                         }}
                       >
-                        <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
                           {f.title}
                         </div>
-                        <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--text-muted)' }}>
+                        <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--text-dim)' }}>
                           {f.body}
                         </div>
                       </div>
@@ -271,7 +256,7 @@ export default function ModuleModal({ module, onClose }: Props) {
                       fontSize: 11,
                       fontWeight: 600,
                       letterSpacing: '0.18em',
-                      color: 'var(--text-muted)',
+                      color: 'var(--text-mute)',
                       textTransform: 'uppercase',
                       marginBottom: 'var(--space-4)',
                     }}
@@ -317,10 +302,10 @@ export default function ModuleModal({ module, onClose }: Props) {
                           {s.step}
                         </span>
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>
                             {s.title}
                           </div>
-                          <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--text-muted)' }}>
+                          <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--text-dim)' }}>
                             {s.body}
                           </div>
                         </div>
@@ -337,7 +322,7 @@ export default function ModuleModal({ module, onClose }: Props) {
                       fontSize: 11,
                       fontWeight: 600,
                       letterSpacing: '0.18em',
-                      color: 'var(--text-muted)',
+                      color: 'var(--text-mute)',
                       textTransform: 'uppercase',
                       marginBottom: 'var(--space-4)',
                     }}
@@ -353,9 +338,9 @@ export default function ModuleModal({ module, onClose }: Props) {
                           fontSize: 11.5,
                           padding: '5px 10px',
                           borderRadius: 'var(--radius-sm)',
-                          color: 'var(--text-secondary)',
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '1px solid var(--border-subtle)',
+                          color: 'var(--text-dim)',
+                          background: 'var(--bg)',
+                          boxShadow: 'var(--neu-raised-sm)',
                         }}
                       >
                         {i}
@@ -375,28 +360,29 @@ export default function ModuleModal({ module, onClose }: Props) {
                 position: 'absolute',
                 top: 16,
                 right: 16,
-                width: 36,
-                height: 36,
+                width: 28,
+                height: 28,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid var(--border-default)',
-                color: 'var(--text-secondary)',
+                borderRadius: '50%',
+                background: 'var(--bg)',
+                border: 'none',
+                boxShadow: 'var(--neu-raised-sm)',
+                color: 'var(--text-dim)',
                 cursor: 'pointer',
-                transition: 'color 160ms ease, background 160ms ease',
+                transition: 'color 160ms ease, box-shadow 160ms ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--text-primary)'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
+                e.currentTarget.style.color = 'var(--text)'
+                e.currentTarget.style.boxShadow = 'var(--neu-inset)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = ''
-                e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
+                e.currentTarget.style.color = 'var(--text-dim)'
+                e.currentTarget.style.boxShadow = 'var(--neu-raised-sm)'
               }}
             >
-              <X size={16} strokeWidth={2} />
+              <X size={14} strokeWidth={2} />
             </button>
 
             <style>{`

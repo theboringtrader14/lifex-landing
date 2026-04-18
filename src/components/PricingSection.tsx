@@ -4,6 +4,7 @@ import { addons, bundles, moduleTiers, trialDays } from '@/data/pricing'
 import { getModuleById } from '@/data/modules'
 import BundleToggle, { type PricingView } from './BundleToggle'
 import PricingCard from './PricingCard'
+import { ModuleIcon } from './icons/ModuleIcons'
 
 export default function PricingSection() {
   const [view, setView] = useState<PricingView>('individual')
@@ -14,7 +15,7 @@ export default function PricingSection() {
       style={{
         position: 'relative',
         padding: 'var(--space-30) var(--space-8)',
-        background: 'linear-gradient(180deg, rgba(10,10,20,0) 0%, rgba(10,10,20,0.4) 100%)',
+        background: 'var(--bg)',
       }}
     >
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -26,7 +27,7 @@ export default function PricingSection() {
           transition={{ duration: 0.6 }}
           style={{
             textAlign: 'center',
-            marginBottom: 'var(--space-12)',
+            marginBottom: 'var(--space-6)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -39,7 +40,7 @@ export default function PricingSection() {
               fontSize: 11,
               fontWeight: 600,
               letterSpacing: '0.24em',
-              color: 'var(--text-muted)',
+              color: 'var(--accent)',
               textTransform: 'uppercase',
             }}
           >
@@ -53,21 +54,21 @@ export default function PricingSection() {
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1.08,
-              color: 'var(--text-primary)',
+              color: 'var(--text)',
             }}
           >
-            Pay for what you use. Or bundle and save.
+            Simple pricing.<br />No lock-in.
           </h2>
           <p
             style={{
               margin: 0,
               fontSize: 'clamp(15px, 1.3vw, 18px)',
               lineHeight: 1.6,
-              color: 'var(--text-secondary)',
-              maxWidth: 640,
+              color: 'var(--text-dim)',
+              maxWidth: '560px',
             }}
           >
-            {trialDays}-day free trial on every plan. No card required. Cancel anytime. All prices in INR, billed monthly via Razorpay.
+            Start with a {trialDays}-day free trial. Upgrade, downgrade, or cancel anytime. Monthly billing via Razorpay.
           </p>
 
           <div style={{ marginTop: 'var(--space-4)' }}>
@@ -106,54 +107,99 @@ export default function PricingSection() {
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.5 }}
           style={{
-            marginTop: 'var(--space-16)',
-            padding: 'var(--space-8)',
+            marginTop: 'var(--space-8)',
             borderRadius: 'var(--radius-lg)',
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg)',
+            boxShadow: 'var(--neu-inset)',
+            display: 'grid',
+            gridTemplateColumns: `max-content repeat(${addons.length}, 1fr)`,
           }}
         >
+          {/* "Add-ons" side label */}
           <div
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: '0.2em',
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              marginBottom: 'var(--space-4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '28px 24px',
+              borderRight: '1px solid var(--border-subtle)',
             }}
           >
-            Add-ons
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'var(--text-mute)',
+                writingMode: 'vertical-rl',
+                transform: 'rotate(180deg)',
+              }}
+            >
+              Add-ons
+            </span>
           </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: 'var(--space-5)',
-            }}
-          >
-            {addons.map((a) => (
-              <div key={a.id}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{a.name}</span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: a.priceDelta < 0 ? '#34d399' : 'var(--text-secondary)',
-                    }}
-                  >
-                    {a.priceDelta < 0 ? '−' : '+'}₹{Math.abs(a.priceDelta)}/mo
-                  </span>
-                </div>
-                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'var(--text-muted)' }}>
-                  {a.description}
-                </p>
+
+          {addons.map((a, idx) => (
+            <div
+              key={a.id}
+              style={{
+                padding: '28px 32px',
+                borderRight: idx < addons.length - 1
+                  ? '1px solid var(--border-subtle)'
+                  : 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              {/* Name label */}
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-mute)',
+                }}
+              >
+                {a.name}
+              </span>
+              {/* Price */}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 28,
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: a.priceDelta < 0 ? 'var(--status-live)' : 'var(--text)',
+                  }}
+                >
+                  {a.priceDelta < 0 ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>
+                  /mo
+                </span>
               </div>
-            ))}
-          </div>
+              {/* Brief description */}
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  lineHeight: 1.55,
+                  color: 'var(--text-mute)',
+                  textAlign: 'center',
+                  maxWidth: 200,
+                }}
+              >
+                {a.description.split('.')[0]}.
+              </p>
+            </div>
+          ))}
         </motion.div>
       </div>
     </section>
@@ -164,61 +210,101 @@ function IndividualView() {
   return (
     <div
       style={{
-        overflowX: 'auto',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-subtle)',
-        background: 'rgba(255,255,255,0.02)',
+        borderRadius: '24px',
+        background: 'var(--bg)',
+        boxShadow: 'var(--neu-raised)',
+        overflow: 'hidden',
       }}
     >
-      <table
+      {/* Sticky header row */}
+      <div
         style={{
-          width: '100%',
-          minWidth: 720,
-          borderCollapse: 'collapse',
-          fontSize: 14,
+          display: 'grid',
+          gridTemplateColumns: '2fr 1fr 1fr 1fr',
+          padding: '16px 28px',
+          borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <thead>
-          <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-            <th style={thStyle('left')}>Module</th>
-            <th style={thStyle('right')}>Starter</th>
-            <th style={thStyle('right')}>Pro</th>
-            <th style={thStyle('right')}>Premium</th>
-          </tr>
-        </thead>
-        <tbody>
-          {moduleTiers.map((mt) => {
-            const mod = getModuleById(mt.moduleId)
-            return (
-              <tr
-                key={mt.moduleId}
-                style={{ borderBottom: '1px solid var(--border-subtle)' }}
+        <div />
+        {(['Starter', 'Pro', 'Premium'] as const).map((label) => (
+          <div
+            key={label}
+            style={{
+              textAlign: 'center',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'var(--text-mute)',
+            }}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+
+      {/* Module rows — separated by dividers */}
+      {moduleTiers.map((mt, idx) => {
+        const mod = getModuleById(mt.moduleId)
+        return (
+          <div
+            key={mt.moduleId}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr 1fr 1fr',
+              alignItems: 'center',
+              padding: '18px 28px',
+              borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
+            }}
+          >
+            {/* Module identity */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: 40,
+                  height: 40,
+                  borderRadius: 11,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--bg)',
+                  boxShadow: 'var(--neu-inset)',
+                  color: mod?.color ?? 'var(--text-mute)',
+                }}
               >
-                <td style={tdLabelStyle}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span
-                      aria-hidden
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: mod?.color ?? 'var(--text-muted)',
-                        boxShadow: `0 0 8px ${mod?.color ?? 'var(--text-muted)'}66`,
-                      }}
-                    />
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
-                      {mt.moduleName}
-                    </span>
-                  </div>
-                </td>
-                <td style={tdValStyle}>{fmtPrice(mt.starter)}</td>
-                <td style={tdValStyle}>{fmtPrice(mt.pro)}</td>
-                <td style={tdValStyle}>{fmtPrice(mt.premium)}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+                {mod && <ModuleIcon iconKey={mod.iconKey} size={20} />}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: 'var(--text)',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {mt.moduleName}
+                </span>
+                {mod && (
+                  <span style={{ fontSize: 12, color: 'var(--text-mute)' }}>
+                    ({mod.tagline})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Tier prices */}
+            {([mt.starter, mt.pro, mt.premium] as (number | null)[]).map((price, i) => (
+              <div key={i} style={{ textAlign: 'center' }}>
+                {fmtPrice(price)}
+              </div>
+            ))}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -230,7 +316,6 @@ function BundlesView() {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
         gap: 'var(--space-5)',
-        paddingTop: 'var(--space-4)',
       }}
     >
       {bundles.map((b) => {
@@ -250,7 +335,7 @@ function BundlesView() {
             featured={b.featured}
             tierLabel="Bundle"
             bullets={[
-              `Modules: ${moduleBullets.join(', ')}`,
+              `Modules: ${['bundle_starter', 'bundle_premium'].includes(b.id) ? 'All modules' : moduleBullets.join(', ')}`,
               ...addonBullets.map((x) => `Includes ${x}`),
               '3-day free trial',
               'Cancel anytime',
@@ -264,32 +349,12 @@ function BundlesView() {
 
 function fmtPrice(p: number | null): React.ReactNode {
   if (p === null) {
-    return <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>—</span>
+    return <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-mute)' }}>—</span>
   }
   return (
-    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', fontWeight: 500 }}>
-      ₹{p.toLocaleString('en-IN')}<span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>/mo</span>
+    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 500 }}>
+      ₹{p.toLocaleString('en-IN')}<span style={{ color: 'var(--text-mute)', fontWeight: 400 }}>/mo</span>
     </span>
   )
 }
 
-const thStyle = (align: 'left' | 'right'): React.CSSProperties => ({
-  textAlign: align,
-  padding: 'var(--space-4) var(--space-5)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  color: 'var(--text-muted)',
-})
-
-const tdLabelStyle: React.CSSProperties = {
-  textAlign: 'left',
-  padding: 'var(--space-4) var(--space-5)',
-}
-
-const tdValStyle: React.CSSProperties = {
-  textAlign: 'right',
-  padding: 'var(--space-4) var(--space-5)',
-}

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
 
 export type PricingView = 'individual' | 'bundles'
 
@@ -13,19 +13,49 @@ const options: { id: PricingView; label: string }[] = [
 ]
 
 export default function BundleToggle({ value, onChange }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [pill, setPill] = useState({ left: 4, width: 0 })
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const btn = container.querySelector<HTMLButtonElement>('[aria-selected="true"]')
+    if (!btn) return
+    setPill({ left: btn.offsetLeft, width: btn.offsetWidth })
+  }, [value])
+
   return (
     <div
+      ref={containerRef}
       role="tablist"
       aria-label="Pricing view"
       style={{
         position: 'relative',
         display: 'inline-flex',
         padding: 4,
-        borderRadius: 'var(--radius-full)',
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-pill)',
+        boxShadow: 'var(--neu-inset)',
+        background: 'var(--bg)',
       }}
     >
+      {/* Single persistent pill — slides via CSS transition */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 4,
+          bottom: 4,
+          left: pill.left,
+          width: pill.width,
+          borderRadius: 'var(--radius-pill)',
+          background: 'var(--bg)',
+          boxShadow: 'var(--neu-raised-sm)',
+          opacity: pill.width > 0 ? 1 : 0,
+          transition: 'left 240ms cubic-bezier(0.4, 0, 0.2, 1), width 240ms cubic-bezier(0.4, 0, 0.2, 1)',
+          pointerEvents: 'none',
+        }}
+      />
+
       {options.map((o) => {
         const active = value === o.id
         return (
@@ -37,32 +67,19 @@ export default function BundleToggle({ value, onChange }: Props) {
             onClick={() => onChange(o.id)}
             style={{
               position: 'relative',
+              zIndex: 1,
               padding: '8px 18px',
               fontSize: 13,
               fontWeight: 500,
-              borderRadius: 'var(--radius-full)',
-              color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+              borderRadius: 'var(--radius-pill)',
+              border: 'none',
+              color: active ? 'var(--accent)' : 'var(--text-mute)',
               background: 'transparent',
               cursor: 'pointer',
-              zIndex: 1,
-              transition: 'color 180ms ease',
+              whiteSpace: 'nowrap',
+              transition: 'color 200ms ease',
             }}
           >
-            {active && (
-              <motion.span
-                layoutId="bundleToggleSlider"
-                transition={{ type: 'spring', stiffness: 360, damping: 32 }}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  zIndex: -1,
-                  borderRadius: 'var(--radius-full)',
-                  background: 'linear-gradient(135deg, rgba(99,102,241,0.22) 0%, rgba(167,139,250,0.22) 100%)',
-                  border: '1px solid rgba(167,139,250,0.35)',
-                  boxShadow: '0 0 0 1px rgba(99,102,241,0.1), 0 8px 24px -8px rgba(99,102,241,0.35)',
-                }}
-              />
-            )}
             {o.label}
           </button>
         )

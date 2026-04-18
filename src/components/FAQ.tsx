@@ -44,23 +44,20 @@ const faqs: QA[] = [
     q: 'Is my data private, and where is it stored?',
     a: 'LIFEX uses a hybrid multi-tenant architecture: a shared core database for users, subscriptions, and OAuth connections, and a per-user schema inside each module database. Your trading data, expenses, and health data are physically isolated per account. All sensitive credentials are encrypted at rest. Databases are hosted in India (ap-south-1).',
   },
-  {
-    q: 'Which modules are live today, and what is the roadmap?',
-    a: 'Live today: STAAX, INVEX, BUDGEX, TRAVEX. Building now: FINEX (LIFEX Score + daily briefing, landing Phase 3). Coming soon: HEALTHEX and HISTEX. Phase 2 will ship the full auth system (email verification, Google OAuth, 2FA), followed by Razorpay subscriptions in Phase 4 and the mobile app in Phase 5.',
-  },
 ]
 
 export default function FAQ() {
-  const [open, setOpen] = useState<number | null>(0)
+  const [open, setOpen] = useState<number | null>(null)
 
   return (
     <section
       id="faq"
       style={{
-        padding: 'var(--space-30) var(--space-8)',
+        padding: 'var(--space-15) var(--space-8) var(--space-15)',
+        background: 'var(--bg)',
       }}
     >
-      <div style={{ maxWidth: 880, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -68,7 +65,7 @@ export default function FAQ() {
           transition={{ duration: 0.6 }}
           style={{
             textAlign: 'center',
-            marginBottom: 'var(--space-12)',
+            marginBottom: 36,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -81,7 +78,7 @@ export default function FAQ() {
               fontSize: 11,
               fontWeight: 600,
               letterSpacing: '0.24em',
-              color: 'var(--text-muted)',
+              color: 'var(--accent)',
               textTransform: 'uppercase',
             }}
           >
@@ -95,31 +92,38 @@ export default function FAQ() {
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1.08,
-              color: 'var(--text-primary)',
+              color: 'var(--text)',
             }}
           >
             Frequently asked questions.
           </h2>
         </motion.div>
 
+        {/* Single container wrapping all FAQ items */}
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            borderTop: '1px solid var(--border-subtle)',
+            borderRadius: '24px',
+            background: 'var(--bg)',
+            boxShadow: 'var(--neu-raised)',
+            overflow: 'hidden',
           }}
         >
           {faqs.map((f, i) => {
             const isOpen = open === i
             return (
-              <div key={f.q} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+              <div
+                key={f.q}
+                style={{
+                  padding: '20px 28px',
+                  borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
                   aria-expanded={isOpen}
                   style={{
                     width: '100%',
-                    padding: 'var(--space-5) 0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -128,10 +132,21 @@ export default function FAQ() {
                     background: 'transparent',
                     border: 0,
                     cursor: 'pointer',
-                    color: 'var(--text-primary)',
+                    color: 'var(--text)',
+                    padding: 0,
                   }}
                 >
-                  <span style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.45 }}>{f.q}</span>
+                  <span
+                    style={{
+                      fontSize: 17,
+                      fontWeight: 500,
+                      lineHeight: 1.45,
+                      fontFamily: 'var(--font-body)',
+                      color: 'var(--text)',
+                    }}
+                  >
+                    {f.q}
+                  </span>
                   <motion.span
                     animate={{ rotate: isOpen ? 45 : 0 }}
                     transition={{ type: 'spring', stiffness: 340, damping: 28 }}
@@ -143,8 +158,10 @@ export default function FAQ() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-default)',
-                      color: isOpen ? '#a78bfa' : 'var(--text-muted)',
+                      boxShadow: 'var(--neu-inset)',
+                      background: 'var(--bg)',
+                      border: 'none',
+                      color: 'var(--accent)',
                     }}
                   >
                     <Plus size={15} strokeWidth={2} />
@@ -164,11 +181,11 @@ export default function FAQ() {
                       <p
                         style={{
                           margin: 0,
-                          padding: '0 0 var(--space-5) 0',
+                          padding: 'var(--space-4) 0 0 0',
                           fontSize: 14.5,
                           lineHeight: 1.65,
-                          color: 'var(--text-secondary)',
-                          maxWidth: 760,
+                          color: 'var(--text-dim)',
+                          paddingRight: 64,
                         }}
                       >
                         {f.a}

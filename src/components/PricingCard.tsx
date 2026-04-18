@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Check, ArrowRight } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 interface Props {
   title: string
@@ -19,7 +19,7 @@ export default function PricingCard({
   price,
   priceSuffix = '/mo',
   bullets,
-  cta = 'Start 3-day trial',
+  cta = 'Start free trial',
   featured = false,
   tierLabel,
   disabled = false,
@@ -33,38 +33,47 @@ export default function PricingCard({
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-5)',
-        padding: 'var(--space-8)',
-        borderRadius: 'var(--radius-lg)',
-        background: featured
-          ? 'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, rgba(6,6,12,0.6) 100%)'
-          : 'linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.012) 100%)',
-        border: featured ? '1px solid rgba(167,139,250,0.4)' : '1px solid var(--border-subtle)',
+        padding: '36px 28px',
+        borderRadius: '24px',
+        overflow: 'hidden',
+        background: 'var(--bg)',
         boxShadow: featured
-          ? '0 0 0 1px rgba(99,102,241,0.15), 0 20px 60px -20px rgba(99,102,241,0.35)'
-          : 'none',
+          ? 'var(--neu-raised), 0 0 60px var(--accent-glow)'
+          : 'var(--neu-raised)',
         opacity: disabled ? 0.55 : 1,
+        transition: 'box-shadow 200ms ease, transform 200ms ease',
       }}
     >
       {featured && (
         <span
           style={{
             position: 'absolute',
-            top: -12,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '4px 12px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: '#fff',
-            background: 'linear-gradient(135deg, #6366f1 0%, #a78bfa 100%)',
-            borderRadius: 'var(--radius-full)',
-            boxShadow: '0 6px 20px -4px rgba(99,102,241,0.6)',
+            top: 26,
+            right: -34,
+            width: 148,
+            padding: '6px 0',
+            textAlign: 'center',
+            background: 'var(--bg)',
+            boxShadow: 'var(--neu-inset)',
+            transform: 'rotate(45deg)',
+            pointerEvents: 'none',
           }}
         >
-          Most popular
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              background: 'linear-gradient(135deg, var(--accent), #ec4899)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Most popular
+          </span>
         </span>
       )}
 
@@ -76,7 +85,7 @@ export default function PricingCard({
             fontWeight: 600,
             letterSpacing: '0.16em',
             textTransform: 'uppercase',
-            color: 'var(--text-muted)',
+            color: 'var(--text-mute)',
           }}
         >
           {tierLabel}
@@ -88,16 +97,16 @@ export default function PricingCard({
           style={{
             margin: 0,
             fontFamily: 'var(--font-display)',
-            fontSize: 22,
-            fontWeight: 700,
+            fontSize: 20,
+            fontWeight: 600,
             letterSpacing: '-0.01em',
-            color: 'var(--text-primary)',
+            color: 'var(--text)',
           }}
         >
           {title}
         </h3>
         {tagline && (
-          <p style={{ margin: '6px 0 0 0', fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          <p style={{ margin: '6px 0 0 0', fontSize: 13.5, color: 'var(--text-dim)', lineHeight: 1.5 }}>
             {tagline}
           </p>
         )}
@@ -105,7 +114,7 @@ export default function PricingCard({
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
         {price === null ? (
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 24, color: 'var(--text-muted)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 24, color: 'var(--text-mute)' }}>
             Not available
           </span>
         ) : (
@@ -115,13 +124,13 @@ export default function PricingCard({
                 fontFamily: 'var(--font-mono)',
                 fontSize: 40,
                 fontWeight: 600,
-                color: 'var(--text-primary)',
+                color: 'var(--text)',
                 letterSpacing: '-0.02em',
               }}
             >
               ₹{price.toLocaleString('en-IN')}
             </span>
-            <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{priceSuffix}</span>
+            <span style={{ fontSize: 14, color: 'var(--text-mute)' }}>{priceSuffix}</span>
           </>
         )}
       </div>
@@ -145,10 +154,10 @@ export default function PricingCard({
               gap: 10,
               fontSize: 13.5,
               lineHeight: 1.5,
-              color: 'var(--text-secondary)',
+              color: 'var(--text-dim)',
             }}
           >
-            <Check size={15} strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0, color: featured ? '#a78bfa' : '#34d399' }} />
+            <Check size={15} strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0, color: 'var(--status-live)' }} />
             {b}
           </li>
         ))}
@@ -168,23 +177,26 @@ export default function PricingCard({
           gap: 8,
           height: 44,
           padding: '0 18px',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-pill)',
           fontSize: 13.5,
           fontWeight: 600,
           textAlign: 'center',
-          color: featured ? '#fff' : 'var(--text-primary)',
-          background: featured
-            ? 'linear-gradient(135deg, #6366f1 0%, #a78bfa 100%)'
-            : 'rgba(255,255,255,0.04)',
-          border: featured ? 'none' : '1px solid var(--border-default)',
-          boxShadow: featured ? '0 10px 28px -8px rgba(99,102,241,0.5)' : 'none',
+          color: 'var(--accent)',
+          background: 'var(--bg)',
+          border: 'none',
+          boxShadow: 'var(--neu-raised-sm)',
           pointerEvents: (disabled || price === null) ? 'none' : 'auto',
           opacity: (disabled || price === null) ? 0.5 : 1,
-          transition: 'transform 180ms ease, box-shadow 180ms ease',
+          transition: 'box-shadow 180ms ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = 'var(--neu-pressed)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = 'var(--neu-raised-sm)'
         }}
       >
         {price === null ? 'Contact sales' : cta}
-        {price !== null && <ArrowRight size={15} strokeWidth={2} />}
       </a>
     </motion.div>
   )

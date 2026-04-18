@@ -7,13 +7,19 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg-deep);
-  color: var(--text-primary);
+  background: var(--bg);
+  color: var(--text);
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.55;
@@ -21,6 +27,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'ss01', 'cv01';
 }
 
 body.modal-open {
@@ -68,24 +75,26 @@ input {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
 ::selection {
-  background: rgba(99, 102, 241, 0.35);
-  color: var(--text-primary);
+  background: var(--accent-glow);
+  color: var(--text);
 }
 
-/* Dark scrollbar */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 5px;
+/* Scrollbar — Chrome only (Safari hides scrollbar overlay by default, no override needed) */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.16); }
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.16); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -98,5 +107,129 @@ input {
 
 /* Section anchor offset for sticky nav */
 section[id] {
-  scroll-margin-top: 72px;
+  scroll-margin-top: 140px;
+}
+
+/* ── Neumorphic surface utilities ── */
+.neu-raised {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--neu-raised);
+  transition: box-shadow 300ms ease, transform 300ms ease;
+}
+.neu-raised-sm {
+  background: var(--bg);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--neu-raised-sm);
+}
+.neu-inset {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--neu-inset);
+}
+
+/* ── Status chips ── */
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.35px;
+  text-transform: uppercase;
+}
+.status-live     { background: var(--status-live-bg);     color: var(--status-live);     }
+.status-building { background: var(--status-building-bg); color: var(--status-building); }
+.status-beta     { background: var(--status-beta-bg);     color: var(--status-beta);     }
+.status-soon     { background: var(--status-soon-bg);     color: var(--status-soon);     border: 1px solid var(--status-soon-border); }
+
+/* ── Hero heading — theme-aware gradient ── */
+.hero-heading {
+  background: linear-gradient(180deg, #ffffff 0%, #a8a8b3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+/* Light mode: silver top fading to near-black so the bottom line is legible */
+[data-theme='light'] .hero-heading {
+  background: linear-gradient(180deg, #7a8494 0%, #1a1d25 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes heroPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.6; }
+}
+
+/* ── HEALTHEX heart pulse ── */
+@keyframes healthex-heartbeat {
+  0%, 100% { transform: scale(1);    }
+  14%       { transform: scale(1.15); }
+  28%       { transform: scale(1);    }
+  42%       { transform: scale(1.08); }
+  70%       { transform: scale(1);    }
+}
+.healthex-heart {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: healthex-heartbeat 1.5s ease-in-out infinite;
+}
+
+/* ── BUDGEX — all animation via SVG animate (no CSS needed) ── */
+
+/* ── FINEX — all animation via SVG animate / animateMotion (no CSS needed) ── */
+
+/* ── INVEX bar chart grow ── */
+@keyframes invex-grow {
+  0%   { transform: scaleY(0); opacity: 0; }
+  5%   { opacity: 1; }
+  75%  { transform: scaleY(1); opacity: 1; }
+  97%  { transform: scaleY(1); opacity: 1; }
+  99%  { opacity: 0; }
+  100% { transform: scaleY(0); opacity: 0; }
+}
+@keyframes invex-arrow-fade {
+  0%, 20%  { opacity: 0; }
+  40%, 90% { opacity: 1; }
+  99%      { opacity: 1; }
+  100%     { opacity: 0; }
+}
+.invex-bar-1 {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: invex-grow 2.4s ease-in-out infinite;
+}
+.invex-bar-2 {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: invex-grow 2.4s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+.invex-bar-3 {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: invex-grow 2.4s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+.invex-arrow {
+  animation: invex-arrow-fade 2.4s ease-in-out infinite;
+  animation-delay: 0.9s;
+  opacity: 0;
+}
+
+/* ── TRAVEX destination pin pulse ── */
+@keyframes travex-pulse {
+  0%, 82%  { opacity: 0;   transform: scale(0.9); }
+  90%      { opacity: 0.8; transform: scale(1.6); }
+  98%      { opacity: 0;   transform: scale(2.3); }
+  100%     { opacity: 0;   transform: scale(0.9); }
+}
+.travex-pin-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: travex-pulse 3s ease-in-out infinite;
 }
