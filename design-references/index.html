@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LIFEX OS — Design Variations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #1a1d25;
+    --bg-surface: #1e2128;
+    --shadow-dark: rgba(0,0,0,0.5);
+    --shadow-light: rgba(255,255,255,0.03);
+    --accent: #8b5cf6;
+    --text: #e5e7eb;
+    --text-dim: rgba(229,231,235,0.55);
+    --text-mute: rgba(229,231,235,0.35);
+    --neu-raised: -8px -8px 16px var(--shadow-light), 8px 8px 16px var(--shadow-dark);
+    --neu-raised-sm: -4px -4px 8px var(--shadow-light), 4px 4px 8px var(--shadow-dark);
+    --neu-pressed: inset -6px -6px 12px var(--shadow-light), inset 6px 6px 12px var(--shadow-dark);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 4rem 2rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  .wordmark span { color: var(--accent); }
+
+  header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  header p {
+    font-size: 1rem;
+    color: var(--text-dim);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.75rem;
+  }
+
+  .tile {
+    display: block;
+    background: var(--bg-surface);
+    box-shadow: var(--neu-raised);
+    border-radius: 20px;
+    padding: 2rem 1.75rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: box-shadow 0.25s, transform 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tile::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 20px 20px 0 0;
+    background: var(--tile-accent, var(--accent));
+  }
+
+  .tile:hover {
+    box-shadow: var(--neu-pressed);
+    transform: translateY(-2px);
+  }
+
+  .tile-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-bottom: 0.5rem;
+  }
+
+  .tile-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
+    color: var(--tile-accent, var(--accent));
+  }
+
+  .tile-sub {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .tile-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--tile-accent, var(--accent));
+    letter-spacing: 0.04em;
+  }
+
+  .tile-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(139,92,246,0.18);
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-mute);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">LIFEX <span>OS</span></div>
+  <h1>Design Variations</h1>
+  <p>Five neumorphic treatments of the same LIFEX OS landing page. Click any tile to open the variation in a new tab.</p>
+</header>
+
+<div class="grid">
+
+  <a href="variation-1-neumorphism.html" target="_blank" class="tile" style="--tile-accent: #8b5cf6;">
+    <div class="tile-badge">Baseline</div>
+    <div class="tile-num">Variation 01</div>
+    <div class="tile-title">Classic Dark</div>
+    <p class="tile-sub">Pure dark neumorphism. All interactive elements use raised/inset/pressed shadow recipes. No glass, no glow, no starfield. Clean and minimal — the reference design.</p>
+    <div class="tile-cta">Open variation →</div>
+  </a>
+
+  <a href="variation-2-glass-neumorphism.html" target="_blank" class="tile" style="--tile-accent: #2dd4bf;">
+    <div class="tile-num">Variation 02</div>
+    <div class="tile-title">Glass Neumorphism</div>
+    <p class="tile-sub">Module and pricing cards gain frosted glass (backdrop-blur 12px). Nav becomes glassmorphic on scroll. Hover reveals a brand-colour inner glow on each card.</p>
+    <div class="tile-cta">Open variation →</div>
+  </a>
+
+  <a href="variation-3-ambient-glow.html" target="_blank" class="tile" style="--tile-accent: #FF6B00;">
+    <div class="tile-num">Variation 03</div>
+    <div class="tile-title">Ambient Glow</div>
+    <p class="tile-sub">Each module card has a per-brand radial glow orb above it. Status chips gain outer glow. Hero H1 flows orange→violet→blue. CTA pulses with accent glow on hover.</p>
+    <div class="tile-cta">Open variation →</div>
+  </a>
+
+  <a href="variation-4-starfield.html" target="_blank" class="tile" style="--tile-accent: #4488FF;">
+    <div class="tile-num">Variation 04</div>
+    <div class="tile-title">Starfield Depth</div>
+    <p class="tile-sub">A pure CSS starfield of 120 dots sits fixed behind everything. A subset of 40 dots twinkle on a 10s cycle. Deeper shadows and a faint violet ambient behind the hero H1.</p>
+    <div class="tile-cta">Open variation →</div>
+  </a>
+
+  <a href="variation-5-light-neumorphism.html" target="_blank" class="tile" style="--tile-accent: #7c3aed;">
+    <div class="tile-num">Variation 05</div>
+    <div class="tile-title">Light Mode</div>
+    <p class="tile-sub">Day-mode neumorphism: bg flips to #e4e7ef, shadows use blue-grey dark and pure white light for the pillowy effect. Status chips get light-mode border treatments.</p>
+    <div class="tile-cta">Open variation →</div>
+  </a>
+
+</div>
+
+<footer>
+  <p>© 2026 LIFEX OS. Built in India. — design-references/</p>
+</footer>
+
+</body>
+</html>
