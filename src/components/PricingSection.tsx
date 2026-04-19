@@ -14,11 +14,11 @@ export default function PricingSection({ compact = false }: { compact?: boolean 
       id="pricing"
       style={{
         position: 'relative',
-        padding: compact ? 'var(--space-8)' : 'var(--space-30) var(--space-8)',
+        padding: compact ? 0 : 'var(--space-30) var(--space-8)',
         background: 'var(--bg)',
       }}
     >
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ maxWidth: compact ? 'none' : 1200, margin: compact ? 0 : '0 auto' }}>
         {/* Header — hidden in compact mode */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
