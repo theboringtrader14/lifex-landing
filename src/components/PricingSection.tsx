@@ -99,205 +99,495 @@ export default function PricingSection() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Add-ons */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.5 }}
-          style={{
-            marginTop: 'var(--space-8)',
-            borderRadius: 'var(--radius-lg)',
-            background: 'var(--bg)',
-            boxShadow: 'var(--neu-inset)',
-            display: 'grid',
-            gridTemplateColumns: `max-content repeat(${addons.length}, 1fr)`,
-          }}
-        >
-          {/* "Add-ons" side label */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '28px 24px',
-              borderRight: '1px solid var(--border-subtle)',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: 'var(--text-mute)',
-                writingMode: 'vertical-rl',
-                transform: 'rotate(180deg)',
-              }}
-            >
-              Add-ons
-            </span>
-          </div>
-
-          {addons.map((a, idx) => (
-            <div
-              key={a.id}
-              style={{
-                padding: '28px 32px',
-                borderRight: idx < addons.length - 1
-                  ? '1px solid var(--border-subtle)'
-                  : 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              {/* Name label */}
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: 'var(--text-mute)',
-                }}
-              >
-                {a.name}
-              </span>
-              {/* Price */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 28,
-                    fontWeight: 700,
-                    letterSpacing: '-0.02em',
-                    color: a.priceDelta < 0 ? 'var(--status-live)' : 'var(--text)',
-                  }}
-                >
-                  {a.priceDelta < 0 ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>
-                  /mo
-                </span>
-              </div>
-              {/* Brief description */}
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 12,
-                  lineHeight: 1.55,
-                  color: 'var(--text-mute)',
-                  textAlign: 'center',
-                  maxWidth: 200,
-                }}
-              >
-                {a.description.split('.')[0]}.
-              </p>
-            </div>
-          ))}
-        </motion.div>
       </div>
     </section>
   )
 }
 
 function IndividualView() {
+  const [selectedModules, setSelectedModules] = useState<string[]>([])
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([])
+
+  const toggleModule = (moduleId: string) => {
+    setSelectedModules((prev) =>
+      prev.includes(moduleId) ? prev.filter((id) => id !== moduleId) : [...prev, moduleId]
+    )
+  }
+
+  const toggleAddon = (addonId: string) => {
+    setSelectedAddons((prev) =>
+      prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]
+    )
+  }
+
+  const total =
+    selectedModules.reduce((sum, id) => {
+      const mp = modulePrices.find((m) => m.moduleId === id)
+      return sum + (mp?.price ?? 0)
+    }, 0) +
+    selectedAddons.reduce((sum, id) => {
+      const a = addons.find((x) => x.id === id)
+      return sum + (a?.priceDelta ?? 0)
+    }, 0)
+
+  return (
+    <>
+      <div
+        className="individual-grid"
+        style={{ display: 'grid', gridTemplateColumns: '65% 35%', gap: 24, alignItems: 'start' }}
+      >
+        {/* LEFT — clickable module list */}
+        <div
+          style={{
+            borderRadius: '24px',
+            background: 'var(--bg)',
+            boxShadow: 'var(--neu-raised)',
+            overflow: 'hidden',
+          }}
+        >
+          {modulePrices.map((mp, idx) => {
+            const mod = getModuleById(mp.moduleId)
+            const isSelected = selectedModules.includes(mp.moduleId)
+            const clickable = !mp.comingSoon
+
+            return (
+              <div
+                key={mp.moduleId}
+                onClick={clickable ? () => toggleModule(mp.moduleId) : undefined}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto',
+                  alignItems: 'center',
+                  padding: '18px 28px',
+                  borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
+                  borderLeft: isSelected
+                    ? `3px solid ${mod?.color ?? 'var(--accent)'}`
+                    : '3px solid transparent',
+                  background: isSelected ? `${mod?.color ?? 'var(--accent)'}14` : 'transparent',
+                  boxShadow: isSelected ? 'var(--neu-inset)' : 'none',
+                  cursor: clickable ? 'pointer' : 'default',
+                  opacity: mp.comingSoon ? 0.5 : 1,
+                  transition: 'background 160ms ease, border-color 160ms ease, box-shadow 160ms ease',
+                }}
+              >
+                {/* Module identity */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      width: 40,
+                      height: 40,
+                      borderRadius: 11,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'var(--bg)',
+                      boxShadow: 'var(--neu-inset)',
+                      color: mod?.color ?? 'var(--text-mute)',
+                    }}
+                  >
+                    {mod && <ModuleIcon iconKey={mod.iconKey} size={20} />}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: 'var(--text)',
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
+                      {mp.moduleName}
+                    </span>
+                    {mod && (
+                      <span style={{ fontSize: 12, color: 'var(--text-mute)' }}>
+                        ({mod.tagline})
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Price / badge / checkmark */}
+                <div
+                  style={{
+                    textAlign: 'right',
+                    paddingLeft: 24,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}
+                >
+                  {mp.comingSoon ? (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: 'var(--text-mute)',
+                        padding: '4px 10px',
+                        borderRadius: 'var(--radius-sm)',
+                        background: 'var(--bg)',
+                        boxShadow: 'var(--neu-inset)',
+                      }}
+                    >
+                      Coming soon
+                    </span>
+                  ) : (
+                    <>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          color: 'var(--text)',
+                          fontWeight: 600,
+                          fontSize: 15,
+                        }}
+                      >
+                        ₹{mp.price!.toLocaleString('en-IN')}
+                        <span style={{ color: 'var(--text-mute)', fontWeight: 400, fontSize: 13 }}>
+                          /mo
+                        </span>
+                      </span>
+                      <span
+                        style={{
+                          width: 20,
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          fontSize: 16,
+                          color: isSelected ? (mod?.color ?? 'var(--accent)') : 'transparent',
+                          transition: 'color 160ms ease',
+                          userSelect: 'none',
+                        }}
+                      >
+                        ✓
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* RIGHT — sticky cart */}
+        <div style={{ position: 'sticky', top: 100 }}>
+          <CartPanel
+            selectedModules={selectedModules}
+            selectedAddons={selectedAddons}
+            onRemoveModule={toggleModule}
+            onToggleAddon={toggleAddon}
+            total={total}
+          />
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .individual-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </>
+  )
+}
+
+interface CartPanelProps {
+  selectedModules: string[]
+  selectedAddons: string[]
+  onRemoveModule: (id: string) => void
+  onToggleAddon: (id: string) => void
+  total: number
+}
+
+function CartPanel({
+  selectedModules,
+  selectedAddons,
+  onRemoveModule,
+  onToggleAddon,
+  total,
+}: CartPanelProps) {
+  const isEmpty = selectedModules.length === 0
+
   return (
     <div
       style={{
-        borderRadius: '24px',
+        borderRadius: 'var(--radius-md)',
         background: 'var(--bg)',
         boxShadow: 'var(--neu-raised)',
-        overflow: 'hidden',
+        padding: 24,
+        minWidth: 240,
       }}
     >
-      {modulePrices.map((mp, idx) => {
-        const mod = getModuleById(mp.moduleId)
-        return (
-          <div
-            key={mp.moduleId}
+      {isEmpty ? (
+        /* State A — empty */
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+            padding: '24px 0',
+          }}
+        >
+          <svg
+            width="36"
+            height="36"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--text-mute)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 01-8 0" />
+          </svg>
+          <span
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              alignItems: 'center',
-              padding: '18px 28px',
-              borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
+              fontFamily: 'var(--font-display)',
+              fontSize: 14,
+              fontWeight: 600,
+              color: 'var(--text-dim)',
+              textAlign: 'center',
+              lineHeight: 1.4,
             }}
           >
-            {/* Module identity */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div
-                style={{
-                  flexShrink: 0,
-                  width: 40,
-                  height: 40,
-                  borderRadius: 11,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'var(--bg)',
-                  boxShadow: 'var(--neu-inset)',
-                  color: mod?.color ?? 'var(--text-mute)',
-                }}
-              >
-                {mod && <ModuleIcon iconKey={mod.iconKey} size={20} />}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 15,
-                    fontWeight: 600,
-                    color: 'var(--text)',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  {mp.moduleName}
-                </span>
-                {mod && (
-                  <span style={{ fontSize: 12, color: 'var(--text-mute)' }}>
-                    ({mod.tagline})
-                  </span>
-                )}
-              </div>
-            </div>
+            Select modules to build your plan
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 12,
+              color: 'var(--text-mute)',
+              textAlign: 'center',
+            }}
+          >
+            Click any module to add it
+          </span>
+        </div>
+      ) : (
+        /* State B — modules selected */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Header */}
+          <span
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 14,
+              fontWeight: 600,
+              color: 'var(--text)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Your Plan
+          </span>
 
-            {/* Price or Coming soon */}
-            <div style={{ textAlign: 'right', paddingLeft: 24 }}>
-              {mp.comingSoon ? (
-                <span
+          {/* Selected modules */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {selectedModules.map((id) => {
+              const mp = modulePrices.find((m) => m.moduleId === id)
+              const mod = getModuleById(id)
+              if (!mp) return null
+              return (
+                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: mod?.color ?? 'var(--accent)',
+                      flexShrink: 0,
+                      display: 'inline-block',
+                    }}
+                  />
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: 'var(--text)',
+                    }}
+                  >
+                    {mp.moduleName}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 13,
+                      color: 'var(--text-dim)',
+                    }}
+                  >
+                    ₹{mp.price!.toLocaleString('en-IN')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveModule(id)}
+                    style={{
+                      all: 'unset',
+                      cursor: 'pointer',
+                      color: 'var(--text-mute)',
+                      fontSize: 15,
+                      lineHeight: 1,
+                      padding: '2px 5px',
+                      borderRadius: 4,
+                      transition: 'color 120ms ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-mute)' }}
+                    aria-label={`Remove ${mp.moduleName}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+
+          {/* Add-ons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: 'var(--text-mute)',
+              }}
+            >
+              Add-ons
+            </span>
+            {addons.map((a) => {
+              const isActive = selectedAddons.includes(a.id)
+              const isDiscount = a.priceDelta < 0
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => onToggleAddon(a.id)}
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    color: 'var(--text-mute)',
-                    padding: '4px 10px',
+                    all: 'unset',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '8px 12px',
                     borderRadius: 'var(--radius-sm)',
                     background: 'var(--bg)',
-                    boxShadow: 'var(--neu-inset)',
+                    boxShadow: isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
+                    transition: 'box-shadow 160ms ease',
                   }}
                 >
-                  Coming soon
-                </span>
-              ) : (
-                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 600, fontSize: 15 }}>
-                  ₹{mp.price!.toLocaleString('en-IN')}
-                  <span style={{ color: 'var(--text-mute)', fontWeight: 400, fontSize: 13 }}>/mo</span>
-                </span>
-              )}
+                  <span
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: 500,
+                      color: isActive ? 'var(--accent)' : 'var(--text-dim)',
+                      transition: 'color 160ms ease',
+                    }}
+                  >
+                    {a.name}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: isDiscount
+                        ? 'var(--status-live)'
+                        : isActive
+                        ? 'var(--accent)'
+                        : 'var(--text-mute)',
+                      transition: 'color 160ms ease',
+                    }}
+                  >
+                    {isDiscount ? '−' : '+'} ₹{Math.abs(a.priceDelta)}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+
+          {/* Total */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--text-dim)',
+              }}
+            >
+              Total
+            </span>
+            <div style={{ textAlign: 'right' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: 'var(--text)',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                ₹{Math.max(0, total).toLocaleString('en-IN')}
+              </div>
+              <div
+                style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}
+              >
+                per month
+              </div>
             </div>
           </div>
-        )
-      })}
+
+          {/* Trial note */}
+          <div
+            style={{
+              textAlign: 'center',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              color: 'var(--text-mute)',
+            }}
+          >
+            {trialDays}-day free trial · Cancel anytime
+          </div>
+
+          {/* CTA */}
+          <button
+            type="button"
+            style={{
+              all: 'unset',
+              cursor: 'pointer',
+              display: 'block',
+              textAlign: 'center',
+              padding: '12px 0',
+              borderRadius: '100px',
+              background: 'var(--bg)',
+              boxShadow: 'var(--neu-raised)',
+              fontFamily: 'var(--font-display)',
+              fontSize: 14,
+              fontWeight: 600,
+              color: 'var(--accent)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Subscribe →
+          </button>
+        </div>
+      )}
     </div>
   )
+}
+
+const bundleAddonNotes: Record<string, string> = {
+  bundle_premium: 'AI Layer included · Mobile App included · BYOK −₹100/mo',
+  bundle_trader:  'AI Layer included · Add Mobile App +₹200/mo · BYOK −₹100/mo',
+  bundle_money:   'AI Layer included · Mobile App included · BYOK −₹100/mo',
 }
 
 function BundlesView() {
@@ -313,10 +603,7 @@ function BundlesView() {
         const moduleBullets = b.includedModules
           .map((id) => getModuleById(id)?.name)
           .filter(Boolean) as string[]
-        const addonBullets = b.includedAddons.map((id) => {
-          const a = addons.find((x) => x.id === id)
-          return a ? `${a.name}` : id
-        })
+
         return (
           <PricingCard
             key={b.id}
@@ -327,10 +614,10 @@ function BundlesView() {
             tierLabel="Bundle"
             bullets={[
               `Modules: ${b.id === 'bundle_premium' ? 'All modules' : moduleBullets.join(', ')}`,
-              ...addonBullets.map((x) => `Includes ${x}`),
+              bundleAddonNotes[b.id] ?? '',
               '3-day free trial',
               'Cancel anytime',
-            ]}
+            ].filter(Boolean)}
           />
         )
       })}
