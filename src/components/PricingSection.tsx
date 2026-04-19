@@ -137,7 +137,7 @@ export default function PricingSection() {
                 transform: 'rotate(180deg)',
               }}
             >
-              Add-ons<sup style={{ color: 'var(--accent)', fontSize: 8, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
+              Add-ons<sup style={{ color: 'var(--accent)', fontSize: 8, verticalAlign: 'super', lineHeight: 0, opacity: 0.75 }}>*</sup>
             </span>
           </div>
 
@@ -320,7 +320,7 @@ function IndividualView() {
                     >
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                         ₹{plan.price.toLocaleString('en-IN')}
-                        <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0, color: 'var(--accent)' }}>*</sup>
+                        <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0, color: 'var(--accent)', opacity: 0.75 }}>*</sup>
                       </span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', fontWeight: 400 }}>
                         /mo ({plan.desc})
@@ -342,7 +342,7 @@ function IndividualView() {
                 >
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                     ₹{mp.price!.toLocaleString('en-IN')}
-                    <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0, color: 'var(--accent)' }}>*</sup>
+                    <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0, color: 'var(--accent)', opacity: 0.75 }}>*</sup>
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 400, color: 'var(--text-mute)' }}>
                     /mo
