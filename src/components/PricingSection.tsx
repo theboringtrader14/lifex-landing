@@ -223,9 +223,8 @@ function IndividualView() {
             key={mp.moduleId}
             style={{
               display: 'grid',
-              gridTemplateColumns: '1fr auto auto',
+              gridTemplateColumns: '1fr auto',
               alignItems: 'center',
-              gap: 20,
               padding: '18px 28px',
               borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
             }}
@@ -269,7 +268,7 @@ function IndividualView() {
             </div>
 
             {/* Price or Coming soon */}
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: 'right', paddingLeft: 24 }}>
               {mp.comingSoon ? (
                 <span
                   style={{
@@ -295,36 +294,6 @@ function IndividualView() {
               )}
             </div>
 
-            {/* CTA */}
-            <div>
-              {!mp.comingSoon ? (
-                <a
-                  href="/start"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    height: 36,
-                    padding: '0 16px',
-                    borderRadius: 'var(--radius-pill)',
-                    background: 'var(--bg)',
-                    boxShadow: 'var(--neu-raised-sm)',
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: 'var(--accent)',
-                    textDecoration: 'none',
-                    whiteSpace: 'nowrap',
-                    transition: 'box-shadow 180ms ease',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--neu-pressed)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--neu-raised-sm)' }}
-                >
-                  Start free trial →
-                </a>
-              ) : (
-                <span style={{ width: 120, display: 'inline-block' }} />
-              )}
-            </div>
           </div>
         )
       })}
