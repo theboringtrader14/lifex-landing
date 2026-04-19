@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import ModuleGrid from './components/ModuleGrid'
@@ -41,7 +42,7 @@ function getCurrentIndex(sections: HTMLElement[]): number {
   return idx
 }
 
-export default function App() {
+function LandingPage() {
   const [openId, setOpenId] = useState<string | null>(null)
   const activeModule = openId ? getModuleById(openId) ?? null : null
 
@@ -53,7 +54,6 @@ export default function App() {
       isAnimating = true
       cooldown = Date.now()
       window.scrollTo({ top: target, behavior: 'smooth' })
-      // Release lock after animation (~700ms)
       setTimeout(() => { isAnimating = false }, 750)
     }
 
@@ -69,14 +69,12 @@ export default function App() {
       const rect = current.getBoundingClientRect()
 
       if (e.deltaY > 0) {
-        // Scrolling down — jump to next section when bottom of current is near viewport bottom
         const atBottom = rect.bottom <= window.innerHeight + 80
         if (!atBottom) return
         const nextIdx = Math.min(idx + 1, sections.length - 1)
         if (nextIdx === idx) return
         scrollTo(getScrollTarget(sections[nextIdx]))
       } else {
-        // Scrolling up — jump to previous section when top of current is near viewport top
         const atTop = rect.top >= -80
         if (!atTop) return
         const prevIdx = Math.max(idx - 1, 0)
@@ -101,5 +99,69 @@ export default function App() {
       <Footer />
       <ModuleModal module={activeModule} onClose={() => setOpenId(null)} />
     </>
+  )
+}
+
+function StartPage() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        flexDirection: 'column',
+        gap: 16,
+        padding: 40,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.24em',
+          color: 'var(--accent)',
+          textTransform: 'uppercase',
+        }}
+      >
+        LIFEX OS
+      </span>
+      <h1
+        style={{
+          margin: 0,
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(28px, 4vw, 48px)',
+          fontWeight: 700,
+          letterSpacing: '-0.02em',
+          color: 'var(--text)',
+          textAlign: 'center',
+        }}
+      >
+        Pricing & Onboarding
+      </h1>
+      <p
+        style={{
+          margin: 0,
+          fontFamily: 'var(--font-mono)',
+          fontSize: 14,
+          color: 'var(--text-mute)',
+        }}
+      >
+        Coming soon
+      </p>
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/start" element={<StartPage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
