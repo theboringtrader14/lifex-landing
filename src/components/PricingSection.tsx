@@ -6,7 +6,7 @@ import BundleToggle, { type PricingView } from './BundleToggle'
 import PricingCard from './PricingCard'
 import { ModuleIcon } from './icons/ModuleIcons'
 
-export default function PricingSection() {
+export default function PricingSection({ compact = false }: { compact?: boolean }) {
   const [view, setView] = useState<PricingView>('individual')
 
   return (
@@ -14,12 +14,12 @@ export default function PricingSection() {
       id="pricing"
       style={{
         position: 'relative',
-        padding: 'var(--space-30) var(--space-8)',
+        padding: compact ? 'var(--space-8)' : 'var(--space-30) var(--space-8)',
         background: 'var(--bg)',
       }}
     >
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        {/* Header */}
+        {/* Header — hidden in compact mode */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -28,7 +28,7 @@ export default function PricingSection() {
           style={{
             textAlign: 'center',
             marginBottom: 'var(--space-6)',
-            display: 'flex',
+            display: compact ? 'none' : 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 'var(--space-4)',
@@ -75,6 +75,13 @@ export default function PricingSection() {
             <BundleToggle value={view} onChange={setView} />
           </div>
         </motion.div>
+
+        {/* Toggle visible in compact mode at the top */}
+        {compact && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-6)' }}>
+            <BundleToggle value={view} onChange={setView} />
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {view === 'individual' ? (

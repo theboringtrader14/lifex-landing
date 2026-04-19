@@ -280,8 +280,8 @@ function StepperSVG({
 function Step1({ onContinue }: { onContinue: () => void }) {
   return (
     <div>
-      {/* Reuse the landing page PricingSection exactly as-is */}
-      <PricingSection />
+      {/* Reuse the landing page PricingSection — header hidden, toggle shown */}
+      <PricingSection compact />
       <div style={{ padding: '0 var(--space-8) var(--space-8)', display: 'flex', justifyContent: 'flex-end' }}>
         <BtnPrimary onClick={onContinue}>Continue →</BtnPrimary>
       </div>
