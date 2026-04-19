@@ -848,7 +848,7 @@ export default function StartPage() {
 
       {/* ── Left pipe column ── */}
       <div className="start-pipe" style={{
-        position: 'fixed', left: 0, top: 0, bottom: 0, width: 220,
+        position: 'fixed', left: 0, top: 0, bottom: 0, width: 160,
         pointerEvents: 'none', zIndex: 50, overflow: 'visible',
       }}>
         {pipePath && totalH > 0 && (
@@ -869,7 +869,7 @@ export default function StartPage() {
       </div>
 
       {/* ── Right column ── */}
-      <main className="start-main" style={{ marginLeft: 220, padding: '80px 80px 200px' }}>
+      <main className="start-main" style={{ marginLeft: 160, padding: '80px 60px 200px' }}>
         <StepSection stepNum={1} title="Choose Plan" state={stepStates[0]} goToStep={goToStep} noCard>
           <Step1 onContinue={goToNextStep} />
         </StepSection>
