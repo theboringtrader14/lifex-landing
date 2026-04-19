@@ -440,7 +440,7 @@ function CartPanel({
         borderRadius: 'var(--radius-md)',
         background: 'var(--bg)',
         boxShadow: 'var(--neu-raised)',
-        padding: '24px 28px',
+        padding: 28,
         minWidth: 240,
       }}
     >
@@ -569,66 +569,62 @@ function CartPanel({
             })}
           </div>
 
-          <div style={{ height: 1, background: 'var(--border-subtle)' }} />
-
-          {/* Add-ons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-                color: 'var(--text-mute)',
-              }}
-            >
-              Add-ons
-            </span>
-            {addons.filter((a) => !(a.id === 'byok' && selectedAddons.includes('ai'))).map((a) => {
-              const isActive = selectedAddons.includes(a.id)
-              const isDiscount = a.priceDelta < 0
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => onToggleAddon(a.id)}
-                  style={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'var(--bg)',
-                    boxShadow: isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
-                    transition: 'box-shadow 160ms ease',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 12.5,
-                      fontWeight: 500,
-                      color: 'var(--text-dim)',
-                    }}
-                  >
-                    {a.name}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: isDiscount ? 'var(--status-live)' : 'var(--text-mute)',
-                    }}
-                  >
-                    {isDiscount ? '−' : '+'} ₹{Math.abs(a.priceDelta)}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
+          {/* Selected add-ons — plain rows, same style as modules */}
+          {selectedAddons.length > 0 && (
+            <>
+              {selectedAddons.map((id) => {
+                const a = addons.find((x) => x.id === id)
+                if (!a) return null
+                const isDiscount = a.priceDelta < 0
+                return (
+                  <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 2,
+                        background: 'var(--text-mute)',
+                        flexShrink: 0,
+                        display: 'inline-block',
+                      }}
+                    />
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
+                      <span style={{ color: 'var(--text-mute)', fontWeight: 400 }}>Add-on  </span>
+                      {a.name}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 13,
+                        color: isDiscount ? 'var(--status-live)' : 'var(--text-dim)',
+                      }}
+                    >
+                      {isDiscount ? '−' : '+'}₹{Math.abs(a.priceDelta)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onToggleAddon(id)}
+                      style={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        color: 'var(--text-mute)',
+                        fontSize: 15,
+                        lineHeight: 1,
+                        padding: '2px 5px',
+                        borderRadius: 4,
+                        transition: 'color 120ms ease',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-mute)' }}
+                      aria-label={`Remove ${a.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )
+              })}
+            </>
+          )}
 
           <div style={{ height: 1, background: 'var(--border-subtle)' }} />
 
