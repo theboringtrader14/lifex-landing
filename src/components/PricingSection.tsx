@@ -286,6 +286,38 @@ function IndividualView() {
                 >
                   Coming soon
                 </span>
+              ) : mp.moduleId === 'staax' ? (
+                /* STAAX — two plan chips */
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[
+                    { label: 'Lite', price: 1500, desc: '10 algos' },
+                    { label: 'Pro',  price: 4000, desc: '30 algos' },
+                  ].map((plan) => (
+                    <div
+                      key={plan.label}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--bg)',
+                        boxShadow: 'var(--neu-raised-sm)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
+                        gap: 2,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: mod?.color ?? 'var(--accent)' }}>
+                          ₹{plan.price.toLocaleString('en-IN')}
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', fontWeight: 400 }}>/mo</span>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mute)', letterSpacing: '0.04em' }}>
+                        {plan.label} · {plan.desc}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 600, fontSize: 15 }}>
                   ₹{mp.price!.toLocaleString('en-IN')}
