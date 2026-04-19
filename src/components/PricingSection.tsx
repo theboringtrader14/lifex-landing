@@ -159,28 +159,33 @@ export default function PricingSection() {
             const isDisabled = isIndividual && isByok && aiActive
             const isActive = isIndividual && selectedAddons.includes(a.id)
             const isDiscount = a.priceDelta < 0
-            const Tag = isIndividual && !isDisabled ? 'button' : 'div'
             return (
-              <Tag
+              <motion.div
                 key={a.id}
-                {...(isIndividual && !isDisabled ? { type: 'button' as const, onClick: () => toggleAddon(a.id) } : {})}
-                style={{
-                  all: 'unset',
-                  boxSizing: 'border-box',
-                  cursor: isIndividual && !isDisabled ? 'pointer' : 'default',
+                onClick={isIndividual && !isDisabled ? () => toggleAddon(a.id) : undefined}
+                animate={{
+                  boxShadow: !isIndividual
+                    ? '0 0 0 0 transparent'
+                    : isActive
+                    ? 'var(--neu-inset)'
+                    : 'var(--neu-raised-sm)',
+                  background: isIndividual ? 'var(--bg)' : 'rgba(0,0,0,0)',
+                  borderRadius: isIndividual ? 10 : 0,
+                  margin: isIndividual ? 8 : 0,
+                  marginRight: isIndividual && idx < addons.length - 1 ? 0 : isIndividual ? 8 : 0,
                   padding: isIndividual ? '20px 24px' : '28px 32px',
-                  margin: isIndividual ? '8px' : 0,
-                  marginRight: isIndividual && idx < addons.length - 1 ? '0' : (isIndividual ? '8px' : 0),
-                  borderRight: !isIndividual && idx < addons.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                  borderRadius: isIndividual ? 'var(--radius-md)' : 0,
-                  background: isIndividual ? 'var(--bg)' : 'transparent',
-                  boxShadow: !isIndividual ? 'none' : isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
+                  opacity: isDisabled ? 0.35 : 1,
+                }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                style={{
+                  cursor: isIndividual && !isDisabled ? 'pointer' : 'default',
+                  borderRight: !isIndividual && idx < addons.length - 1
+                    ? '1px solid var(--border-subtle)'
+                    : 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 10,
-                  opacity: isDisabled ? 0.35 : 1,
-                  transition: 'box-shadow 160ms ease, opacity 160ms ease',
                 }}
               >
                 <span
@@ -223,7 +228,7 @@ export default function PricingSection() {
                 >
                   {a.description.split('.')[0]}.
                 </p>
-              </Tag>
+              </motion.div>
             )
           })}
         </motion.div>
