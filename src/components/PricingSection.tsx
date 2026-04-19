@@ -288,7 +288,7 @@ function IndividualView() {
                 </span>
               ) : mp.moduleId === 'staax' ? (
                 /* STAAX — two plan chips */
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 12 }}>
                   {[
                     { price: 1500, desc: '10 algos' },
                     { price: 4000, desc: '30 algos' },
@@ -296,24 +296,20 @@ function IndividualView() {
                     <div
                       key={plan.price}
                       style={{
-                        padding: '6px 12px',
+                        padding: '6px 14px',
                         borderRadius: 'var(--radius-md)',
                         background: 'var(--bg)',
                         boxShadow: 'var(--neu-raised-sm)',
                         display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-end',
-                        gap: 2,
+                        alignItems: 'baseline',
+                        gap: 5,
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
-                          ₹{plan.price.toLocaleString('en-IN')}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', fontWeight: 400 }}>/mo</span>
-                      </div>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mute)', letterSpacing: '0.04em' }}>
-                        ({plan.desc})
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+                        ₹{plan.price.toLocaleString('en-IN')}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', fontWeight: 400 }}>
+                        /mo ({plan.desc})
                       </span>
                     </div>
                   ))}
