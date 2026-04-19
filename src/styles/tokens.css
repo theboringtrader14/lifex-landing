@@ -5,6 +5,11 @@
   --bg-surface: #1e2128;
   --bg-elevated: #222631;
 
+  /* Pipe SVG groove layers */
+  --pipe-groove-1: #0a0c12;
+  --pipe-groove-2: #13151e;
+  --pipe-groove-highlight: rgba(255,255,255,0.035);
+
   /* Neumorphic shadows */
   --shadow-dark: rgba(0, 0, 0, 0.5);
   --shadow-light: rgba(255, 255, 255, 0.03);
@@ -39,6 +44,11 @@
   --bg: #e4e7ef;
   --bg-surface: #ebeef5;
   --bg-elevated: #f5f7fc;
+
+  /* Pipe SVG groove layers */
+  --pipe-groove-1: rgba(163, 177, 198, 0.75);
+  --pipe-groove-2: rgba(163, 177, 198, 0.45);
+  --pipe-groove-highlight: rgba(255, 255, 255, 0.85);
 
   /* Shadows inverted: bright highlight, blue-grey shadow */
   --shadow-dark: rgba(163, 177, 198, 0.55);

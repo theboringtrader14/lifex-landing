@@ -61,10 +61,10 @@ const inputStyle: React.CSSProperties = {
   padding: '14px 16px',
   borderRadius: 12,
   border: 'none',
-  background: '#1a1d25',
+  background: 'var(--bg)',
   color: 'var(--text)',
   fontSize: 14,
-  boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+  boxShadow: 'var(--neu-inset)',
   outline: 'none',
   boxSizing: 'border-box' as const,
   transition: 'box-shadow 0.2s',
@@ -88,7 +88,7 @@ function FormInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
       style={{
         ...inputStyle,
         boxShadow: focused
-          ? 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5), 0 0 0 1.5px rgba(139,92,246,0.35)'
+          ? 'var(--neu-inset), 0 0 0 1.5px rgba(139,92,246,0.35)'
           : inputStyle.boxShadow as string,
         ...props.style,
       }}
@@ -104,9 +104,9 @@ function BtnPrimary({ children, onClick, disabled, full }: {
   disabled?: boolean
   full?: boolean
 }) {
-  const base  = '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5), 0 0 32px rgba(139,92,246,0.25)'
-  const hover = '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5), 0 0 48px rgba(139,92,246,0.45)'
-  const press = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)'
+  const base  = 'var(--neu-raised), 0 0 32px rgba(139,92,246,0.25)'
+  const hover = 'var(--neu-raised), 0 0 48px rgba(139,92,246,0.45)'
+  const press = 'var(--neu-pressed)'
   return (
     <button
       onClick={onClick}
@@ -123,9 +123,9 @@ function BtnPrimary({ children, onClick, disabled, full }: {
         fontSize: 15,
         fontWeight: 600,
         fontFamily: 'var(--font-body)',
-        color: disabled ? 'var(--text-mute)' : '#8b5cf6',
-        background: '#1a1d25',
-        boxShadow: disabled ? 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)' : base,
+        color: disabled ? 'var(--text-mute)' : 'var(--accent)',
+        background: 'var(--bg)',
+        boxShadow: disabled ? 'var(--neu-inset)' : base,
         width: full ? '100%' : undefined,
         transition: 'transform 0.15s, box-shadow 0.2s',
         opacity: disabled ? 0.55 : 1,
@@ -138,9 +138,7 @@ function BtnPrimary({ children, onClick, disabled, full }: {
       }}
       onMouseLeave={e => {
         e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = disabled
-          ? 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)'
-          : base
+        e.currentTarget.style.boxShadow = disabled ? 'var(--neu-inset)' : base
       }}
       onMouseDown={e => { if (!disabled) e.currentTarget.style.boxShadow = press }}
       onMouseUp={e => { if (!disabled) e.currentTarget.style.boxShadow = hover }}
@@ -195,10 +193,10 @@ function StepperSVG({
       </defs>
 
       {/* ── 4-layer neumorphic pipe groove ── */}
-      <path d={pipePath} stroke="#0a0c12"                strokeWidth="22" fill="none" />
-      <path d={pipePath} stroke="#13151e"                strokeWidth="18" fill="none" />
-      <path d={pipePath} stroke="rgba(255,255,255,0.035)" strokeWidth="16" fill="none" />
-      <path d={pipePath} stroke="#1a1d25"                strokeWidth="12" fill="none" />
+      <path d={pipePath} style={{ stroke: 'var(--pipe-groove-1)' }}        strokeWidth="22" fill="none" />
+      <path d={pipePath} style={{ stroke: 'var(--pipe-groove-2)' }}        strokeWidth="18" fill="none" />
+      <path d={pipePath} style={{ stroke: 'var(--pipe-groove-highlight)' }} strokeWidth="16" fill="none" />
+      <path d={pipePath} style={{ stroke: 'var(--bg)' }}                   strokeWidth="12" fill="none" />
 
       {/* ── Purple fluid progress ── */}
       <path
@@ -242,7 +240,7 @@ function StepperSVG({
               <circle cx="80" cy={y} r="14" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
             )}
             {state === 'upcoming' && (
-              <circle cx="80" cy={y} r="14" fill="#1e2128" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+              <circle cx="80" cy={y} r="14" style={{ fill: 'var(--bg-surface)' }} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
             )}
 
             {/* Number / checkmark */}
@@ -326,14 +324,14 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
           const mod      = modules.find(m => m.id === mp.moduleId)
           const selected = selectedModules.includes(mp.moduleId)
           const color    = mod?.color ?? '#8b5cf6'
-          const raisedShadow = '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)'
-          const hoverShadow  = '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5)'
-          const insetShadow  = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)'
+          const raisedShadow = 'var(--neu-raised-sm)'
+          const hoverShadow  = 'var(--neu-raised)'
+          const insetShadow  = 'var(--neu-inset)'
           return (
             <div
               key={mp.moduleId}
               style={{
-                background: '#1e2128',
+                background: 'var(--bg-surface)',
                 borderRadius: 16,
                 boxShadow: selected ? insetShadow : raisedShadow,
                 borderLeft: `3px solid ${selected ? color : 'transparent'}`,
@@ -389,8 +387,8 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
                     width: 44, height: 44,
                     borderRadius: 12,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: '#1a1d25',
-                    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                    background: 'var(--bg)',
+                    boxShadow: 'var(--neu-inset)',
                     color,
                   }}>
                     {mod && <ModuleIcon iconKey={mod.iconKey} size={22} />}
@@ -405,8 +403,8 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 }}>
                   <div style={{
                     fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--text-dim)',
-                    background: '#1a1d25',
-                    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                    background: 'var(--bg)',
+                    boxShadow: 'var(--neu-inset)',
                     padding: '4px 10px', borderRadius: 8,
                   }}>
                     {mp.moduleId === 'staax' ? 'from ₹1,500/mo' : `₹${mp.price!.toLocaleString('en-IN')}/mo`}
@@ -414,8 +412,8 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
                   <div style={{
                     width: 24, height: 24, borderRadius: 7, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: selected ? color : '#1a1d25',
-                    boxShadow: selected ? `0 0 12px ${color}55` : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+                    background: selected ? color : 'var(--bg)',
+                    boxShadow: selected ? `0 0 12px ${color}55` : 'var(--neu-raised-sm)',
                     border: selected ? 'none' : '1px solid rgba(255,255,255,0.08)',
                     transition: 'all 0.2s',
                   }}>
@@ -446,10 +444,10 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
                           style={{
                             padding: '10px 16px', borderRadius: 10,
                             border: isActive ? `1px solid ${color}` : '1px solid transparent',
-                            background: '#1a1d25',
+                            background: 'var(--bg)',
                             boxShadow: isActive
-                              ? `-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5), 0 0 14px ${color}44`
-                              : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+                              ? `var(--neu-raised-sm), 0 0 14px ${color}44`
+                              : 'var(--neu-raised-sm)',
                             color: isActive ? color : 'var(--text-dim)',
                             fontSize: 12.5, fontWeight: 500, cursor: 'pointer',
                             fontFamily: 'var(--font-mono)',
@@ -476,9 +474,9 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
             <div
               key={mp.moduleId}
               style={{
-                background: '#1e2128',
+                background: 'var(--bg-surface)',
                 borderRadius: 16,
-                boxShadow: '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+                boxShadow: 'var(--neu-raised-sm)',
                 borderLeft: '3px solid transparent',
                 opacity: 0.45,
                 cursor: 'default',
@@ -492,8 +490,8 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
                   <div style={{
                     flexShrink: 0, width: 44, height: 44, borderRadius: 12,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: '#1a1d25',
-                    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                    background: 'var(--bg)',
+                    boxShadow: 'var(--neu-inset)',
                     color,
                   }}>
                     {mod && <ModuleIcon iconKey={mod.iconKey} size={22} />}
@@ -507,8 +505,8 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
                   fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em',
                   padding: '4px 10px', borderRadius: 8,
                   color: 'var(--text-mute)',
-                  background: '#1a1d25',
-                  boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                  background: 'var(--bg)',
+                  boxShadow: 'var(--neu-inset)',
                 }}>
                   Coming soon
                 </span>
@@ -686,8 +684,8 @@ function Step3({ email, onContinue }: Step3Props) {
     width: 44, height: 54, textAlign: 'center',
     fontSize: 24, fontWeight: 600, fontFamily: 'var(--font-mono)',
     borderRadius: 12, border: 'none',
-    background: '#1a1d25', color: 'var(--text)',
-    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+    background: 'var(--bg)', color: 'var(--text)',
+    boxShadow: 'var(--neu-inset)',
     outline: 'none', caretColor: 'var(--accent)',
     boxSizing: 'border-box' as const,
   }
@@ -721,8 +719,8 @@ function Step3({ email, onContinue }: Step3Props) {
             pattern="[0-9]"
             onChange={e => handleChange(i, e.target.value)}
             onKeyDown={e => handleKeyDown(i, e)}
-            onFocus={e => { e.currentTarget.style.boxShadow = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5), 0 0 0 1.5px rgba(139,92,246,0.35)' }}
-            onBlur={e => { e.currentTarget.style.boxShadow = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)' }}
+            onFocus={e => { e.currentTarget.style.boxShadow = 'var(--neu-inset), 0 0 0 1.5px rgba(139,92,246,0.35)' }}
+            onBlur={e => { e.currentTarget.style.boxShadow = 'var(--neu-inset)' }}
           />
         ))}
       </div>
@@ -981,9 +979,9 @@ function Step6({ selectedModules, selectedBundle }: Step6Props) {
       {/* Pulsing success ring */}
       <div style={{
         width: 88, height: 88, borderRadius: '50%',
-        background: '#1e2128',
+        background: 'var(--bg-surface)',
         border: '2px solid rgba(139,92,246,0.5)',
-        boxShadow: '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5), 0 0 40px rgba(139,92,246,0.35)',
+        boxShadow: 'var(--neu-raised), 0 0 40px rgba(139,92,246,0.35)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 36, color: '#8b5cf6',
         animation: 'successPulse 2s ease-in-out infinite',
@@ -1020,7 +1018,7 @@ function Step6({ selectedModules, selectedBundle }: Step6Props) {
           display: 'inline-flex', alignItems: 'center', gap: 8,
           padding: '14px 36px', borderRadius: 12, border: 'none', cursor: 'pointer',
           fontSize: 15, fontWeight: 600, color: '#fff', background: 'var(--accent)',
-          boxShadow: '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+          boxShadow: 'var(--neu-raised-sm)',
           transition: 'transform 0.15s',
         }}
         onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)' }}
@@ -1079,11 +1077,9 @@ function StepSection({ stepNum, title, state, goToStep, children }: StepSectionP
       style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 0' }}
     >
       <div style={{
-        background: '#1e2128',
+        background: 'var(--bg-surface)',
         borderRadius: 20,
-        boxShadow: isActive
-          ? '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5)'
-          : '-4px -4px 8px rgba(255,255,255,0.02), 4px 4px 8px rgba(0,0,0,0.35)',
+        boxShadow: isActive ? 'var(--neu-raised)' : 'var(--neu-raised-sm)',
         padding: 32,
         marginBottom: 24,
         opacity: state === 'upcoming' ? 0.5 : 1,
@@ -1435,7 +1431,7 @@ export default function StartPage() {
       {showStickyBar && (
         <div className="start-sticky-bar" style={{
           position: 'fixed', bottom: 0, left: 240, right: 0, zIndex: 200,
-          background: '#1e2128',
+          background: 'var(--bg-surface)',
           borderTop: '1px solid rgba(255,255,255,0.06)',
           boxShadow: '0 -8px 24px rgba(0,0,0,0.4)',
           padding: '16px 80px',
