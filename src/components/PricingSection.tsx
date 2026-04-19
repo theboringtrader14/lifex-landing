@@ -179,7 +179,7 @@ export default function PricingSection() {
                     color: a.priceDelta < 0 ? 'var(--status-live)' : 'var(--text)',
                   }}
                 >
-                  {a.priceDelta < 0 ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
+                  {a.priceDelta < 0 ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}<sup style={{ fontSize: 8, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>
                   /mo
@@ -201,6 +201,19 @@ export default function PricingSection() {
             </div>
           ))}
         </motion.div>
+
+        {/* Footnote */}
+        <p
+          style={{
+            marginTop: 'var(--space-4)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            color: 'var(--text-mute)',
+            textAlign: 'right',
+          }}
+        >
+          * Monthly billing via Razorpay. Cancel anytime.
+        </p>
       </div>
     </section>
   )
@@ -307,6 +320,7 @@ function IndividualView() {
                     >
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                         ₹{plan.price.toLocaleString('en-IN')}
+                        <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
                       </span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', fontWeight: 400 }}>
                         /mo ({plan.desc})
@@ -328,6 +342,7 @@ function IndividualView() {
                 >
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                     ₹{mp.price!.toLocaleString('en-IN')}
+                    <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 400, color: 'var(--text-mute)' }}>
                     /mo
