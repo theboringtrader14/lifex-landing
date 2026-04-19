@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { modulePrices, bundles } from '../data/pricing'
 import { modules } from '../data/modules'
 import { ModuleIcon } from '../components/icons/ModuleIcons'
+import Nav from '../components/Nav'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1155,17 +1156,6 @@ function StepSection({ stepNum, title, state, goToStep, children }: StepSectionP
 // ─── Main StartPage ───────────────────────────────────────────────────────────
 
 export default function StartPage() {
-  // Force dark theme on this page always; restore on unmount
-  useEffect(() => {
-    const root = document.documentElement
-    const prev = root.getAttribute('data-theme')
-    root.setAttribute('data-theme', 'dark')
-    return () => {
-      if (prev) root.setAttribute('data-theme', prev)
-      else root.removeAttribute('data-theme')
-    }
-  }, [])
-
   const [nodeYs, setNodeYs]     = useState<number[]>([])
   const [pipePath, setPipePath] = useState('')
   const [totalH, setTotalH]     = useState(0)
@@ -1357,32 +1347,12 @@ export default function StartPage() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', position: 'relative' }}>
 
-      {/* ── Top Nav ── */}
-      <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, height: 56, zIndex: 100,
-        background: '#1a1d25',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 60px',
-      }}>
-        <Link to="/" style={{
-          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18,
-          letterSpacing: '0.04em', color: 'var(--text)',
-        }}>
-          LIFEX <span style={{ color: 'var(--accent)' }}>OS</span>
-        </Link>
-        <Link to="/login" style={{ fontSize: 13, color: 'var(--text-dim)', transition: 'color 0.2s' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-dim)'}
-        >
-          Already a member? <strong style={{ color: 'var(--accent)' }}>Sign in →</strong>
-        </Link>
-      </header>
+      {/* ── Nav — reuse landing page pill nav ── */}
+      <Nav />
 
       {/* ── Mobile dot stepper ── */}
       <div className="start-mobile-stepper" style={{
-        display: 'none', position: 'fixed', top: 56, left: 0, right: 0, zIndex: 99,
+        display: 'none', position: 'fixed', top: 80, left: 0, right: 0, zIndex: 99,
         background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.05)',
       }}>
         <MobileStepper stepStates={stepStates} />
@@ -1411,7 +1381,7 @@ export default function StartPage() {
       </div>
 
       {/* ── Right column ── */}
-      <main className="start-main" style={{ marginLeft: 220, padding: '56px 80px 200px' }}>
+      <main className="start-main" style={{ marginLeft: 220, padding: '80px 80px 200px' }}>
         <StepSection stepNum={1} title="Choose Plan" state={stepStates[0]} goToStep={goToStep}>
           <Step1
             selectedModules={selectedModules}
@@ -1490,7 +1460,7 @@ export default function StartPage() {
         @media (max-width: 768px) {
           .start-pipe { display: none !important; }
           .start-mobile-stepper { display: block !important; }
-          .start-main { margin-left: 0 !important; padding: 100px 24px 120px !important; }
+          .start-main { margin-left: 0 !important; padding: 116px 24px 120px !important; }
           .start-sticky-bar { padding: 16px 24px !important; }
         }
       `}</style>
