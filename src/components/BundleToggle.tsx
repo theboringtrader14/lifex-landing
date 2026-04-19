@@ -8,7 +8,7 @@ interface Props {
 }
 
 const options: { id: PricingView; label: string }[] = [
-  { id: 'individual', label: 'Individual modules' },
+  { id: 'individual', label: 'Modules' },
   { id: 'bundles', label: 'Bundles' },
 ]
 
