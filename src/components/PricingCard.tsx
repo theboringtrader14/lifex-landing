@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 
 interface Props {
@@ -25,9 +24,7 @@ export default function PricingCard({
   disabled = false,
 }: Props) {
   return (
-    <motion.div
-      whileHover={disabled ? undefined : { y: -4 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+    <div
       style={{
         position: 'relative',
         display: 'flex',
@@ -198,6 +195,6 @@ export default function PricingCard({
       >
         {price === null ? 'Contact sales' : cta}
       </a>
-    </motion.div>
+    </div>
   )
 }

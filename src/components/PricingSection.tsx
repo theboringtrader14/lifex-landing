@@ -11,9 +11,13 @@ export default function PricingSection() {
   const [selectedAddons, setSelectedAddons] = useState<string[]>([])
 
   const toggleAddon = (addonId: string) => {
-    setSelectedAddons((prev) =>
-      prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]
-    )
+    setSelectedAddons((prev) => {
+      if (prev.includes(addonId)) return prev.filter((id) => id !== addonId)
+      const next = [...prev, addonId]
+      // Selecting AI Layer: auto-deselect BYOK (they're mutually exclusive)
+      if (addonId === 'ai') return next.filter((id) => id !== 'byok')
+      return next
+    })
   }
 
   return (
@@ -150,25 +154,31 @@ export default function PricingSection() {
 
           {addons.map((a, idx) => {
             const isIndividual = view === 'individual'
+            const aiActive = selectedAddons.includes('ai')
+            const isByok = a.id === 'byok'
+            const isDisabled = isIndividual && isByok && aiActive
             const isActive = isIndividual && selectedAddons.includes(a.id)
             const isDiscount = a.priceDelta < 0
-            const Tag = isIndividual ? 'button' : 'div'
+            const Tag = isIndividual && !isDisabled ? 'button' : 'div'
             return (
               <Tag
                 key={a.id}
-                {...(isIndividual ? { type: 'button' as const, onClick: () => toggleAddon(a.id) } : {})}
+                {...(isIndividual && !isDisabled ? { type: 'button' as const, onClick: () => toggleAddon(a.id) } : {})}
                 style={{
                   all: 'unset',
-                  cursor: isIndividual ? 'pointer' : 'default',
-                  padding: '28px 32px',
-                  borderRight: idx < addons.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  cursor: isIndividual && !isDisabled ? 'pointer' : 'default',
+                  padding: '20px 24px',
+                  margin: '8px',
+                  marginRight: idx < addons.length - 1 ? '0' : '8px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--bg)',
+                  boxShadow: isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 10,
-                  background: isActive ? 'rgba(255,107,0,0.06)' : 'transparent',
-                  boxShadow: isActive ? 'var(--neu-inset)' : 'none',
-                  transition: 'background 160ms ease, box-shadow 160ms ease',
+                  opacity: isDisabled ? 0.35 : 1,
+                  transition: 'box-shadow 160ms ease, opacity 160ms ease',
                 }}
               >
                 <span
@@ -178,8 +188,7 @@ export default function PricingSection() {
                     fontWeight: 600,
                     letterSpacing: '0.2em',
                     textTransform: 'uppercase',
-                    color: isActive ? 'var(--accent)' : 'var(--text-mute)',
-                    transition: 'color 160ms ease',
+                    color: 'var(--text-mute)',
                   }}
                 >
                   {a.name}
@@ -191,12 +200,7 @@ export default function PricingSection() {
                       fontSize: 28,
                       fontWeight: 700,
                       letterSpacing: '-0.02em',
-                      color: isDiscount
-                        ? 'var(--status-live)'
-                        : isActive
-                        ? 'var(--accent)'
-                        : 'var(--text)',
-                      transition: 'color 160ms ease',
+                      color: isDiscount ? 'var(--status-live)' : 'var(--text)',
                     }}
                   >
                     {isDiscount ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
@@ -217,21 +221,6 @@ export default function PricingSection() {
                 >
                   {a.description.split('.')[0]}.
                 </p>
-                {isIndividual && (
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: '0.1em',
-                      color: isActive ? 'var(--accent)' : 'transparent',
-                      transition: 'color 160ms ease',
-                      userSelect: 'none',
-                    }}
-                  >
-                    ✓ SELECTED
-                  </span>
-                )}
               </Tag>
             )
           })}
@@ -451,7 +440,7 @@ function CartPanel({
         borderRadius: 'var(--radius-md)',
         background: 'var(--bg)',
         boxShadow: 'var(--neu-raised)',
-        padding: 24,
+        padding: '24px 28px',
         minWidth: 240,
       }}
     >
@@ -596,7 +585,7 @@ function CartPanel({
             >
               Add-ons
             </span>
-            {addons.map((a) => {
+            {addons.filter((a) => !(a.id === 'byok' && selectedAddons.includes('ai'))).map((a) => {
               const isActive = selectedAddons.includes(a.id)
               const isDiscount = a.priceDelta < 0
               return (
@@ -621,8 +610,7 @@ function CartPanel({
                     style={{
                       fontSize: 12.5,
                       fontWeight: 500,
-                      color: isActive ? 'var(--accent)' : 'var(--text-dim)',
-                      transition: 'color 160ms ease',
+                      color: 'var(--text-dim)',
                     }}
                   >
                     {a.name}
@@ -632,12 +620,7 @@ function CartPanel({
                       fontFamily: 'var(--font-mono)',
                       fontSize: 12,
                       fontWeight: 600,
-                      color: isDiscount
-                        ? 'var(--status-live)'
-                        : isActive
-                        ? 'var(--accent)'
-                        : 'var(--text-mute)',
-                      transition: 'color 160ms ease',
+                      color: isDiscount ? 'var(--status-live)' : 'var(--text-mute)',
                     }}
                   >
                     {isDiscount ? '−' : '+'} ₹{Math.abs(a.priceDelta)}
