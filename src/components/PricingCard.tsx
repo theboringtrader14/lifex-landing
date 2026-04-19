@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 interface Props {
   title: string
@@ -158,41 +159,60 @@ export default function PricingCard({
         ))}
       </ul>
 
-      <a
-        href={disabled ? undefined : '#'}
-        aria-disabled={disabled || price === null}
-        onClick={(e) => {
-          if (disabled || price === null) e.preventDefault()
-        }}
-        style={{
-          marginTop: 'auto',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          height: 44,
-          padding: '0 18px',
-          borderRadius: 'var(--radius-pill)',
-          fontSize: 13.5,
-          fontWeight: 600,
-          textAlign: 'center',
-          color: 'var(--accent)',
-          background: 'var(--bg)',
-          border: 'none',
-          boxShadow: 'var(--neu-raised-sm)',
-          pointerEvents: (disabled || price === null) ? 'none' : 'auto',
-          opacity: (disabled || price === null) ? 0.5 : 1,
-          transition: 'box-shadow 180ms ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = 'var(--neu-pressed)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = 'var(--neu-raised-sm)'
-        }}
-      >
-        {price === null ? 'Contact sales' : cta}
-      </a>
+      {(!disabled && price !== null) ? (
+        <Link
+          to="/start"
+          style={{
+            marginTop: 'auto',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            height: 44,
+            padding: '0 18px',
+            borderRadius: 'var(--radius-pill)',
+            fontSize: 13.5,
+            fontWeight: 600,
+            textAlign: 'center',
+            color: 'var(--accent)',
+            background: 'var(--bg)',
+            border: 'none',
+            boxShadow: 'var(--neu-raised-sm)',
+            transition: 'box-shadow 180ms ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = 'var(--neu-pressed)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = 'var(--neu-raised-sm)'
+          }}
+        >
+          {cta}
+        </Link>
+      ) : (
+        <span
+          style={{
+            marginTop: 'auto',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            height: 44,
+            padding: '0 18px',
+            borderRadius: 'var(--radius-pill)',
+            fontSize: 13.5,
+            fontWeight: 600,
+            textAlign: 'center',
+            color: 'var(--accent)',
+            background: 'var(--bg)',
+            border: 'none',
+            boxShadow: 'var(--neu-raised-sm)',
+            opacity: 0.5,
+          }}
+        >
+          {price === null ? 'Contact sales' : cta}
+        </span>
+      )}
     </div>
   )
 }

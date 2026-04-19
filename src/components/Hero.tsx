@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 
 const stats = [
   { value: '7', label: 'Modules' },
@@ -118,8 +119,8 @@ export default function Hero() {
 
         {/* CTA */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
-          <a
-            href="#"
+          <Link
+            to="/start"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -144,7 +145,7 @@ export default function Hero() {
             }}
           >
             Start 3-day free trial
-          </a>
+          </Link>
         </div>
 
         {/* Stats */}

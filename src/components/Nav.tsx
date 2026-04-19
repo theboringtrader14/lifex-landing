@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ThemeToggle } from './ThemeToggle'
 
 const links = [
@@ -126,8 +127,8 @@ export default function Nav() {
       <div className="nav-actions" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <ThemeToggle />
 
-        <a
-          href="#"
+        <Link
+          to="/start"
           style={{
             height: 34,
             padding: '10px 20px',
@@ -152,7 +153,7 @@ export default function Nav() {
           }}
         >
           Get started
-        </a>
+        </Link>
       </div>
 
       {/* Mobile toggle */}

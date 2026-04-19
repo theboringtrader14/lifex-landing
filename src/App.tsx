@@ -8,6 +8,7 @@ import PricingSection from './components/PricingSection'
 import FAQ from './components/FAQ'
 import Footer from './components/Footer'
 import { getModuleById } from './data/modules'
+import StartPage from './pages/StartPage'
 
 const SECTION_IDS = ['top', 'modules', 'pricing', 'faq']
 
@@ -102,58 +103,6 @@ function LandingPage() {
   )
 }
 
-function StartPage() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: 'var(--bg)',
-        flexDirection: 'column',
-        gap: 16,
-        padding: 40,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: '0.24em',
-          color: 'var(--accent)',
-          textTransform: 'uppercase',
-        }}
-      >
-        LIFEX OS
-      </span>
-      <h1
-        style={{
-          margin: 0,
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(28px, 4vw, 48px)',
-          fontWeight: 700,
-          letterSpacing: '-0.02em',
-          color: 'var(--text)',
-          textAlign: 'center',
-        }}
-      >
-        Pricing & Onboarding
-      </h1>
-      <p
-        style={{
-          margin: 0,
-          fontFamily: 'var(--font-mono)',
-          fontSize: 14,
-          color: 'var(--text-mute)',
-        }}
-      >
-        Coming soon
-      </p>
-    </div>
-  )
-}
 
 export default function App() {
   return (
