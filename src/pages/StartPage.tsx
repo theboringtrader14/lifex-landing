@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { modulePrices, bundles } from '../data/pricing'
 import { modules } from '../data/modules'
+import { ModuleIcon } from '../components/icons/ModuleIcons'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -102,6 +103,9 @@ function BtnPrimary({ children, onClick, disabled, full }: {
   disabled?: boolean
   full?: boolean
 }) {
+  const base  = '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5), 0 0 32px rgba(139,92,246,0.25)'
+  const hover = '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5), 0 0 48px rgba(139,92,246,0.45)'
+  const press = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)'
   return (
     <button
       onClick={onClick}
@@ -112,28 +116,33 @@ function BtnPrimary({ children, onClick, disabled, full }: {
         justifyContent: 'center',
         gap: 8,
         padding: '14px 32px',
-        borderRadius: 12,
+        borderRadius: 100,
         border: 'none',
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontSize: 15,
         fontWeight: 600,
         fontFamily: 'var(--font-body)',
-        color: '#fff',
-        background: disabled ? 'rgba(139,92,246,0.4)' : 'var(--accent)',
-        boxShadow: disabled ? 'none' : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+        color: disabled ? 'var(--text-mute)' : '#8b5cf6',
+        background: '#1a1d25',
+        boxShadow: disabled ? 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)' : base,
         width: full ? '100%' : undefined,
-        transition: 'transform 0.15s, box-shadow 0.15s',
+        transition: 'transform 0.15s, box-shadow 0.2s',
+        opacity: disabled ? 0.55 : 1,
       }}
       onMouseEnter={e => {
         if (!disabled) {
-          e.currentTarget.style.transform = 'translateY(-1px)'
-          e.currentTarget.style.boxShadow = '-6px -6px 12px rgba(255,255,255,0.04), 6px 6px 12px rgba(0,0,0,0.55), 0 4px 20px rgba(139,92,246,0.3)'
+          e.currentTarget.style.transform = 'translateY(-2px)'
+          e.currentTarget.style.boxShadow = hover
         }
       }}
       onMouseLeave={e => {
         e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = disabled ? 'none' : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)'
+        e.currentTarget.style.boxShadow = disabled
+          ? 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)'
+          : base
       }}
+      onMouseDown={e => { if (!disabled) e.currentTarget.style.boxShadow = press }}
+      onMouseUp={e => { if (!disabled) e.currentTarget.style.boxShadow = hover }}
     >
       {children}
     </button>
@@ -185,7 +194,7 @@ function StepperSVG({
       </defs>
 
       {/* ── 4-layer neumorphic pipe groove ── */}
-      <path d={pipePath} stroke="#0a0c12"                stroke-width="22" fill="none" />
+      <path d={pipePath} stroke="#0a0c12"                strokeWidth="22" fill="none" />
       <path d={pipePath} stroke="#13151e"                strokeWidth="18" fill="none" />
       <path d={pipePath} stroke="rgba(255,255,255,0.035)" strokeWidth="16" fill="none" />
       <path d={pipePath} stroke="#1a1d25"                strokeWidth="12" fill="none" />
@@ -309,59 +318,109 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      {/* Module list */}
-      <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, boxShadow: 'var(--neu-raised)', overflow: 'hidden', marginBottom: 32 }}>
-        {availableModules.map((mp, idx) => {
+
+      {/* ── Module list — individual raised cards per module ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
+        {availableModules.map((mp) => {
           const mod      = modules.find(m => m.id === mp.moduleId)
           const selected = selectedModules.includes(mp.moduleId)
+          const color    = mod?.color ?? '#8b5cf6'
+          const raisedShadow = '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)'
+          const hoverShadow  = '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5)'
+          const insetShadow  = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)'
           return (
-            <div key={mp.moduleId}>
+            <div
+              key={mp.moduleId}
+              style={{
+                background: '#1e2128',
+                borderRadius: 16,
+                boxShadow: selected ? insetShadow : raisedShadow,
+                borderLeft: `3px solid ${selected ? color : 'transparent'}`,
+                overflow: 'hidden',
+                transition: 'box-shadow 0.2s, transform 0.15s, border-left-color 0.2s',
+              }}
+            >
               <div
                 onClick={() => toggleModule(mp.moduleId)}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr auto',
                   alignItems: 'center',
-                  padding: '18px 24px',
-                  borderBottom: idx < availableModules.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  padding: '16px 20px',
                   cursor: 'pointer',
-                  background: selected ? 'rgba(139,92,246,0.06)' : 'transparent',
-                  transition: 'background 0.15s',
                   position: 'relative',
+                  overflow: 'hidden',
+                  background: selected ? `${color}10` : 'transparent',
+                  transition: 'background 0.2s',
                 }}
-                onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = selected ? 'rgba(139,92,246,0.06)' : 'transparent' }}
+                onMouseEnter={e => {
+                  const card = e.currentTarget.parentElement as HTMLDivElement | null
+                  if (card && !selected) {
+                    card.style.boxShadow = hoverShadow
+                    card.style.transform = 'translateY(-1px)'
+                  }
+                }}
+                onMouseLeave={e => {
+                  const card = e.currentTarget.parentElement as HTMLDivElement | null
+                  if (card) {
+                    card.style.boxShadow = selected ? insetShadow : raisedShadow
+                    card.style.transform = 'translateY(0)'
+                  }
+                }}
               >
-                {/* Left: dot + name + tagline */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                {/* Radial color wash — top-right corner, fades in on select */}
+                <div
+                  aria-hidden
+                  style={{
+                    position: 'absolute', top: 0, right: 0,
+                    width: 200, height: 200,
+                    background: `radial-gradient(circle at top right, ${color}28, transparent 70%)`,
+                    opacity: selected ? 1 : 0,
+                    transition: 'opacity 0.3s ease',
+                    pointerEvents: 'none',
+                  }}
+                />
+
+                {/* Left: inset icon well + name + tagline */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 1 }}>
                   <div style={{
-                    width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-                    background: mod?.color ?? 'var(--text-mute)',
-                    boxShadow: selected ? `0 0 10px ${mod?.color}` : 'none',
-                    transition: 'box-shadow 0.2s',
-                  }} />
+                    flexShrink: 0,
+                    width: 44, height: 44,
+                    borderRadius: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#1a1d25',
+                    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                    color,
+                  }}>
+                    {mod && <ModuleIcon iconKey={mod.iconKey} size={22} />}
+                  </div>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{mp.moduleName}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 2 }}>{mod?.tagline}</div>
+                    <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', letterSpacing: '-0.01em' }}>{mp.moduleName}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 2, lineHeight: 1.4 }}>{mod?.tagline}</div>
                   </div>
                 </div>
 
-                {/* Right: price + checkbox */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-dim)', textAlign: 'right' }}>
+                {/* Right: price chip + checkbox */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 }}>
+                  <div style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--text-dim)',
+                    background: '#1a1d25',
+                    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                    padding: '4px 10px', borderRadius: 8,
+                  }}>
                     {mp.moduleId === 'staax' ? 'from ₹1,500/mo' : `₹${mp.price!.toLocaleString('en-IN')}/mo`}
                   </div>
-                  {/* Checkbox */}
                   <div style={{
-                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                    width: 24, height: 24, borderRadius: 7, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: selected ? 'none' : '1.5px solid rgba(255,255,255,0.12)',
-                    background: selected ? 'var(--accent)' : 'transparent',
+                    background: selected ? color : '#1a1d25',
+                    boxShadow: selected ? `0 0 12px ${color}55` : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+                    border: selected ? 'none' : '1px solid rgba(255,255,255,0.08)',
                     transition: 'all 0.2s',
                   }}>
                     {selected && (
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                   </div>
@@ -371,29 +430,36 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
               {/* STAAX plan expansion */}
               {mp.moduleId === 'staax' && (
                 <div style={{
-                  maxHeight: selected ? 80 : 0,
+                  maxHeight: selected ? 100 : 0,
                   overflow: 'hidden',
                   opacity: selected ? 1 : 0,
-                  transition: 'max-height 0.25s ease, opacity 0.25s',
+                  transition: 'max-height 0.3s ease, opacity 0.25s',
                 }}>
-                  <div style={{ display: 'flex', gap: 10, padding: '12px 0 8px 52px' }}>
-                    {STAAX_PLANS.map(p => (
-                      <div
-                        key={p.id}
-                        onClick={e => { e.stopPropagation(); setStaaxPlan(p.id) }}
-                        style={{
-                          padding: '8px 18px', borderRadius: 20,
-                          border: staaxPlan === p.id ? '1.5px solid var(--accent)' : '1.5px solid rgba(255,255,255,0.1)',
-                          background: staaxPlan === p.id ? 'rgba(139,92,246,0.12)' : 'var(--bg)',
-                          color: staaxPlan === p.id ? 'var(--text)' : 'var(--text-dim)',
-                          fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                          fontFamily: 'var(--font-mono)',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        {p.label} · ₹{p.price.toLocaleString('en-IN')} · {p.desc}
-                      </div>
-                    ))}
+                  <div style={{ display: 'flex', gap: 10, padding: '10px 20px 14px 84px' }}>
+                    {STAAX_PLANS.map(p => {
+                      const isActive = staaxPlan === p.id
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={e => { e.stopPropagation(); setStaaxPlan(p.id) }}
+                          style={{
+                            padding: '10px 16px', borderRadius: 10,
+                            border: isActive ? `1px solid ${color}` : '1px solid transparent',
+                            background: '#1a1d25',
+                            boxShadow: isActive
+                              ? `-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5), 0 0 14px ${color}44`
+                              : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+                            color: isActive ? color : 'var(--text-dim)',
+                            fontSize: 12.5, fontWeight: 500, cursor: 'pointer',
+                            fontFamily: 'var(--font-mono)',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          <span style={{ fontWeight: 600 }}>{p.label}</span>
+                          {' · '}₹{p.price.toLocaleString('en-IN')}/mo · {p.desc}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -401,40 +467,57 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
           )
         })}
 
-        {/* Coming soon modules */}
-        {comingSoonModules.map((mp) => {
-          const mod = modules.find(m => m.id === mp.moduleId)
+        {/* Coming soon — dimmed, individual cards */}
+        {comingSoonModules.map(mp => {
+          const mod   = modules.find(m => m.id === mp.moduleId)
+          const color = mod?.color ?? '#888'
           return (
             <div
               key={mp.moduleId}
               style={{
-                display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center',
-                padding: '18px 24px',
-                borderTop: '1px solid rgba(255,255,255,0.04)',
-                opacity: 0.55, cursor: 'default',
+                background: '#1e2128',
+                borderRadius: 16,
+                boxShadow: '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+                borderLeft: '3px solid transparent',
+                opacity: 0.45,
+                cursor: 'default',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: mod?.color ?? '#888', flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{mp.moduleName}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 2 }}>{mod?.tagline}</div>
-                </div>
-              </div>
-              <span style={{
-                fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em',
-                padding: '3px 8px', borderRadius: 6,
-                border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-mute)',
-                background: 'rgba(255,255,255,0.03)',
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center',
+                padding: '16px 20px',
               }}>
-                Coming soon
-              </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{
+                    flexShrink: 0, width: 44, height: 44, borderRadius: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#1a1d25',
+                    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                    color,
+                  }}>
+                    {mod && <ModuleIcon iconKey={mod.iconKey} size={22} />}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{mp.moduleName}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 2 }}>{mod?.tagline}</div>
+                  </div>
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em',
+                  padding: '4px 10px', borderRadius: 8,
+                  color: 'var(--text-mute)',
+                  background: '#1a1d25',
+                  boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+                }}>
+                  Coming soon
+                </span>
+              </div>
             </div>
           )
         })}
       </div>
 
-      {/* Bundles */}
+      {/* ── Bundles — each on var(--bg) with neu-raised ── */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 16 }}>
           — or pick a bundle
@@ -447,29 +530,53 @@ function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundl
                 key={b.id}
                 onClick={() => selectBundle(b.id)}
                 style={{
-                  background: sel ? 'rgba(139,92,246,0.08)' : 'var(--bg-elevated)',
-                  borderRadius: 14,
+                  background: 'var(--bg)',
+                  borderRadius: 20,
                   padding: '20px',
-                  border: sel ? '1.5px solid var(--accent)' : '1.5px solid rgba(255,255,255,0.06)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: 'var(--neu-raised-sm)',
                   position: 'relative',
+                  overflow: 'hidden',
+                  // selected: accent ring on top of raised shadow
+                  boxShadow: sel
+                    ? 'var(--neu-raised), 0 0 0 1.5px var(--accent)'
+                    : 'var(--neu-raised)',
+                  transition: 'box-shadow 0.2s',
                 }}
-                onMouseEnter={e => { if (!sel) e.currentTarget.style.borderColor = 'rgba(139,92,246,0.3)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = sel ? 'var(--accent)' : 'rgba(255,255,255,0.06)' }}
+                onMouseEnter={e => {
+                  if (!sel) e.currentTarget.style.boxShadow = 'var(--neu-raised), 0 0 0 1px rgba(139,92,246,0.35)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.boxShadow = sel
+                    ? 'var(--neu-raised), 0 0 0 1.5px var(--accent)'
+                    : 'var(--neu-raised)'
+                }}
               >
+                {/* Featured badge */}
                 {b.featured && (
-                  <div style={{ position: 'absolute', top: 10, right: 12, fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)' }}>
-                    Popular
+                  <div style={{
+                    position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
+                    background: 'var(--accent)', color: '#fff',
+                    fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600,
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    padding: '3px 12px', borderRadius: 999, whiteSpace: 'nowrap',
+                  }}>
+                    Most popular
                   </div>
                 )}
-                <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', fontSize: 14, marginBottom: 4, color: 'var(--text)' }}>{b.name}</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 500, color: 'var(--accent)', marginBottom: 8 }}>
-                  ₹{b.price.toLocaleString('en-IN')}<span style={{ fontSize: 12, color: 'var(--text-mute)' }}>/mo</span>
+                <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', fontSize: 15, marginBottom: 4, color: 'var(--text)', letterSpacing: '-0.01em' }}>{b.name}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 500, color: sel ? 'var(--accent)' : 'var(--text-dim)', marginBottom: 8, letterSpacing: '-0.02em' }}>
+                  ₹{b.price.toLocaleString('en-IN')}<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-mute)' }}>/mo</span>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-mute)', lineHeight: 1.6 }}>
-                  {b.includedModules.map(id => modules.find(m => m.id === id)?.name).filter(Boolean).join(' + ')}
+                <div style={{ fontSize: 11, color: 'var(--text-mute)', lineHeight: 1.65 }}>
+                  {b.includedModules.map(id => {
+                    const m = modules.find(x => x.id === id)
+                    return (
+                      <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 6 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: m?.color ?? '#888', display: 'inline-block', flexShrink: 0 }} />
+                        {m?.name ?? id.toUpperCase()}
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             )
@@ -575,7 +682,7 @@ function Step3({ email, onContinue }: Step3Props) {
   const filled = otp.every(d => d !== '')
 
   const otpBoxStyle: React.CSSProperties = {
-    width: 52, height: 60, textAlign: 'center',
+    width: 44, height: 54, textAlign: 'center',
     fontSize: 24, fontWeight: 600, fontFamily: 'var(--font-mono)',
     borderRadius: 12, border: 'none',
     background: '#1a1d25', color: 'var(--text)',
@@ -872,11 +979,12 @@ function Step6({ selectedModules, selectedBundle }: Step6Props) {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '40px 0' }}>
       {/* Pulsing success ring */}
       <div style={{
-        width: 80, height: 80, borderRadius: '50%',
-        background: 'rgba(139,92,246,0.15)',
-        border: '2px solid var(--accent)',
+        width: 88, height: 88, borderRadius: '50%',
+        background: '#1e2128',
+        border: '2px solid rgba(139,92,246,0.5)',
+        boxShadow: '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5), 0 0 40px rgba(139,92,246,0.35)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 36,
+        fontSize: 36, color: '#8b5cf6',
         animation: 'successPulse 2s ease-in-out infinite',
         marginBottom: 32,
       }}>
@@ -967,67 +1075,78 @@ function StepSection({ stepNum, title, state, goToStep, children }: StepSectionP
   return (
     <section
       id={`step-${stepNum}`}
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '80px 0' }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 0' }}
     >
-      {/* Step badge row */}
-      <div
-        onClick={() => isCompleted ? goToStep(stepNum - 1) : undefined}
-        style={{ cursor: isCompleted ? 'pointer' : 'default', marginBottom: 12 }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          {/* Badge circle */}
-          <div style={{
-            width: 24, height: 24, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-mono)',
-            background: isCompleted
-              ? 'rgba(139,92,246,0.6)'
-              : isActive
-              ? 'var(--accent)'
-              : 'rgba(255,255,255,0.06)',
-            color: (isCompleted || isActive) ? '#fff' : 'var(--text-mute)',
-            border: (isCompleted || isActive) ? 'none' : '1px solid rgba(255,255,255,0.08)',
-            boxShadow: isActive ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
-            transition: 'all 0.3s',
-            flexShrink: 0,
-          }}>
-            {isCompleted ? '✓' : stepNum}
+      <div style={{
+        background: '#1e2128',
+        borderRadius: 20,
+        boxShadow: isActive
+          ? '-8px -8px 16px rgba(255,255,255,0.03), 8px 8px 16px rgba(0,0,0,0.5)'
+          : '-4px -4px 8px rgba(255,255,255,0.02), 4px 4px 8px rgba(0,0,0,0.35)',
+        padding: 32,
+        marginBottom: 24,
+        opacity: state === 'upcoming' ? 0.5 : 1,
+        transition: 'box-shadow 0.3s, opacity 0.3s',
+      }}>
+        {/* Step badge row */}
+        <div
+          onClick={() => isCompleted ? goToStep(stepNum - 1) : undefined}
+          style={{ cursor: isCompleted ? 'pointer' : 'default', marginBottom: 12 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            {/* Badge circle */}
+            <div style={{
+              width: 24, height: 24, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-mono)',
+              background: isCompleted
+                ? 'rgba(139,92,246,0.6)'
+                : isActive
+                ? 'var(--accent)'
+                : 'rgba(255,255,255,0.06)',
+              color: (isCompleted || isActive) ? '#fff' : 'var(--text-mute)',
+              border: (isCompleted || isActive) ? 'none' : '1px solid rgba(255,255,255,0.08)',
+              boxShadow: isActive ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
+              transition: 'all 0.3s',
+              flexShrink: 0,
+            }}>
+              {isCompleted ? '✓' : stepNum}
+            </div>
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.1em',
+              textTransform: 'uppercase' as const,
+              color: isActive ? 'var(--accent)' : 'var(--text-mute)',
+              transition: 'color 0.3s',
+            }}>
+              Step {stepNum} of 6
+            </span>
           </div>
-          <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.1em',
-            textTransform: 'uppercase' as const,
-            color: isActive ? 'var(--accent)' : 'var(--text-mute)',
-            transition: 'color 0.3s',
+
+          {/* Title */}
+          <h2 style={{
+            margin: 0,
+            fontFamily: 'var(--font-display)',
+            fontSize: isActive ? 'clamp(24px, 3vw, 36px)' : 20,
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            color: isActive ? 'var(--text)' : isCompleted ? 'var(--text-dim)' : 'var(--text-mute)',
+            transition: 'font-size 400ms ease, color 300ms ease',
           }}>
-            Step {stepNum} of 6
-          </span>
+            {isCompleted && <span style={{ color: 'var(--accent)', marginRight: 8 }}>✓</span>}
+            {title}
+          </h2>
         </div>
 
-        {/* Title */}
-        <h2 style={{
-          margin: 0,
-          fontFamily: 'var(--font-display)',
-          fontSize: isActive ? 'clamp(24px, 3vw, 36px)' : 20,
-          fontWeight: 700,
-          letterSpacing: '-0.02em',
-          color: isActive ? 'var(--text)' : isCompleted ? 'var(--text-dim)' : 'var(--text-mute)',
-          opacity: state === 'upcoming' ? 0.5 : 1,
-          transition: 'font-size 400ms ease, color 300ms ease, opacity 300ms ease',
+        {/* Step body */}
+        <div style={{
+          maxHeight: isActive ? 2000 : 0,
+          opacity: isActive ? 1 : 0,
+          overflow: 'hidden',
+          transform: isActive ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'max-height 600ms ease, opacity 500ms ease 400ms, transform 500ms ease 400ms',
         }}>
-          {isCompleted && <span style={{ color: 'var(--accent)', marginRight: 8 }}>✓</span>}
-          {title}
-        </h2>
-      </div>
-
-      {/* Step body */}
-      <div style={{
-        maxHeight: isActive ? 1600 : 0,
-        opacity: isActive ? 1 : 0,
-        overflow: 'hidden',
-        transform: isActive ? 'translateY(0)' : 'translateY(20px)',
-        transition: 'max-height 600ms ease, opacity 500ms ease 400ms, transform 500ms ease 400ms',
-      }}>
-        {children}
+          <div style={{ paddingTop: 24 }}>{children}</div>
+        </div>
       </div>
     </section>
   )
@@ -1036,6 +1155,17 @@ function StepSection({ stepNum, title, state, goToStep, children }: StepSectionP
 // ─── Main StartPage ───────────────────────────────────────────────────────────
 
 export default function StartPage() {
+  // Force dark theme on this page always; restore on unmount
+  useEffect(() => {
+    const root = document.documentElement
+    const prev = root.getAttribute('data-theme')
+    root.setAttribute('data-theme', 'dark')
+    return () => {
+      if (prev) root.setAttribute('data-theme', prev)
+      else root.removeAttribute('data-theme')
+    }
+  }, [])
+
   const [nodeYs, setNodeYs]     = useState<number[]>([])
   const [pipePath, setPipePath] = useState('')
   const [totalH, setTotalH]     = useState(0)
@@ -1088,8 +1218,12 @@ export default function StartPage() {
     const fracs = nodeYs.map(y => findFractionForY(path, y, len))
     stepFractionsRef.current = fracs
 
+    // Debug: verify pipe and ball refs
+    console.log('[StartPage] pipe totalLength:', len, 'fracs:', fracs)
+
     // Init ball at step 0 node
     const pt0 = path.getPointAtLength(fracs[0] * len)
+    console.log('[StartPage] initial ball position:', pt0)
     if (ballRef.current) {
       ballRef.current.setAttribute('cx', String(pt0.x))
       ballRef.current.setAttribute('cy', String(pt0.y))
@@ -1225,8 +1359,10 @@ export default function StartPage() {
 
       {/* ── Top Nav ── */}
       <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, height: 64, zIndex: 100,
-        background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.05)',
+        position: 'fixed', top: 0, left: 0, right: 0, height: 56, zIndex: 100,
+        background: '#1a1d25',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 60px',
       }}>
@@ -1246,7 +1382,7 @@ export default function StartPage() {
 
       {/* ── Mobile dot stepper ── */}
       <div className="start-mobile-stepper" style={{
-        display: 'none', position: 'fixed', top: 64, left: 0, right: 0, zIndex: 99,
+        display: 'none', position: 'fixed', top: 56, left: 0, right: 0, zIndex: 99,
         background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.05)',
       }}>
         <MobileStepper stepStates={stepStates} />
@@ -1275,7 +1411,7 @@ export default function StartPage() {
       </div>
 
       {/* ── Right column ── */}
-      <main className="start-main" style={{ marginLeft: 220, padding: '64px 80px 200px' }}>
+      <main className="start-main" style={{ marginLeft: 220, padding: '56px 80px 200px' }}>
         <StepSection stepNum={1} title="Choose Plan" state={stepStates[0]} goToStep={goToStep}>
           <Step1
             selectedModules={selectedModules}
@@ -1328,12 +1464,12 @@ export default function StartPage() {
       {/* ── Sticky bottom bar ── */}
       {showStickyBar && (
         <div className="start-sticky-bar" style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
-          background: 'var(--bg-surface)', borderTop: '1px solid rgba(255,255,255,0.08)',
+          position: 'fixed', bottom: 0, left: 240, right: 0, zIndex: 200,
+          background: '#1e2128',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: '0 -8px 24px rgba(0,0,0,0.4)',
           padding: '16px 80px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          transform: 'translateY(0)',
-          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
         }}>
           <div>
             <div style={{ fontSize: 14, color: 'var(--text-dim)' }}>
@@ -1354,7 +1490,7 @@ export default function StartPage() {
         @media (max-width: 768px) {
           .start-pipe { display: none !important; }
           .start-mobile-stepper { display: block !important; }
-          .start-main { margin-left: 0 !important; padding: 108px 24px 120px !important; }
+          .start-main { margin-left: 0 !important; padding: 100px 24px 120px !important; }
           .start-sticky-bar { padding: 16px 24px !important; }
         }
       `}</style>
