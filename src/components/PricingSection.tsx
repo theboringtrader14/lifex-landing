@@ -397,7 +397,7 @@ function IndividualView({
         </div>
 
         {/* RIGHT — sticky cart */}
-        <div style={{ position: 'sticky', top: 100 }}>
+        <div style={{ position: 'sticky', top: 100, paddingRight: 16 }}>
           <CartPanel
             selectedModules={selectedModules}
             selectedAddons={selectedAddons}
