@@ -315,10 +315,24 @@ function IndividualView() {
                   ))}
                 </div>
               ) : (
-                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 600, fontSize: 15 }}>
-                  ₹{mp.price!.toLocaleString('en-IN')}
-                  <span style={{ color: 'var(--text-mute)', fontWeight: 400, fontSize: 13 }}>/mo</span>
-                </span>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'baseline',
+                    gap: 5,
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'var(--bg)',
+                    boxShadow: 'var(--neu-raised-sm)',
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+                    ₹{mp.price!.toLocaleString('en-IN')}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 400, color: 'var(--text-mute)' }}>
+                    /mo
+                  </span>
+                </div>
               )}
             </div>
 
