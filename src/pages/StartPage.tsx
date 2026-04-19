@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { modulePrices, addons, bundles } from '../data/pricing'
+import { modulePrices, bundles } from '../data/pricing'
 import { modules } from '../data/modules'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -9,12 +9,17 @@ type StepState = 'upcoming' | 'active' | 'completed'
 type StaaxPlan = 'lite' | 'pro'
 
 const STEP_LABELS = ['Choose Plan', 'Sign Up', 'Verify', 'Review', 'Payment', 'Welcome']
-const NODE_VH = [0.14, 0.30, 0.46, 0.62, 0.78, 0.94]
+const NODE_VH     = [0.14, 0.30, 0.46, 0.62, 0.78, 0.94]
 
-// STAAX plans
 const STAAX_PLANS = [
-  { id: 'lite' as StaaxPlan, label: 'Lite', price: 1000, desc: '10 algos' },
+  { id: 'lite' as StaaxPlan, label: 'Lite', price: 1500, desc: '10 algos' },
   { id: 'pro'  as StaaxPlan, label: 'Pro',  price: 4000, desc: '30 algos' },
+]
+
+const ADDON_DEFS = [
+  { id: 'ai',     label: 'AI Layer',      delta: 300,  sign: '+' },
+  { id: 'mobile', label: 'Mobile App',    delta: 200,  sign: '+' },
+  { id: 'byok',   label: 'BYOK discount', delta: -100, sign: '−' },
 ]
 
 // ─── Pipe path builder ────────────────────────────────────────────────────────
@@ -25,16 +30,114 @@ function buildPipePath(nodeYs: number[], totalH: number): string {
   let d = `M ${cx} 0 L ${cx} ${nodeYs[0] - 30}`
   for (let i = 0; i < nodeYs.length; i++) {
     const y = nodeYs[i]
-    // smooth arrival at node
     d += ` C ${cx} ${y - 10}, ${cx} ${y + 10}, ${cx} ${y}`
     if (i < nodeYs.length - 1) {
-      const yn = nodeYs[i + 1]
+      const yn  = nodeYs[i + 1]
       const mid = (y + yn) / 2
       d += ` C ${cx} ${y + 20}, ${cx - 20} ${mid}, ${cx} ${yn - 20}`
     }
   }
   d += ` L ${cx} ${totalH}`
   return d
+}
+
+// Binary search: find fraction [0,1] of path length where point.y ≈ targetY
+function findFractionForY(path: SVGPathElement, targetY: number, totalLen: number): number {
+  let lo = 0, hi = 1
+  for (let i = 0; i < 52; i++) {
+    const mid = (lo + hi) / 2
+    const pt  = path.getPointAtLength(mid * totalLen)
+    if (pt.y < targetY) lo = mid; else hi = mid
+  }
+  return (lo + hi) / 2
+}
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '14px 16px',
+  borderRadius: 12,
+  border: 'none',
+  background: '#1a1d25',
+  color: 'var(--text)',
+  fontSize: 14,
+  boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+  outline: 'none',
+  boxSizing: 'border-box' as const,
+  transition: 'box-shadow 0.2s',
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: 11,
+  fontFamily: 'var(--font-mono)',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--text-dim)',
+  marginBottom: 8,
+}
+
+function FormInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <input
+      {...props}
+      style={{
+        ...inputStyle,
+        boxShadow: focused
+          ? 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5), 0 0 0 1.5px rgba(139,92,246,0.35)'
+          : inputStyle.boxShadow as string,
+        ...props.style,
+      }}
+      onFocus={e => { setFocused(true); props.onFocus?.(e) }}
+      onBlur={e => { setFocused(false); props.onBlur?.(e) }}
+    />
+  )
+}
+
+function BtnPrimary({ children, onClick, disabled, full }: {
+  children: React.ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  full?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: '14px 32px',
+        borderRadius: 12,
+        border: 'none',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontSize: 15,
+        fontWeight: 600,
+        fontFamily: 'var(--font-body)',
+        color: '#fff',
+        background: disabled ? 'rgba(139,92,246,0.4)' : 'var(--accent)',
+        boxShadow: disabled ? 'none' : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+        width: full ? '100%' : undefined,
+        transition: 'transform 0.15s, box-shadow 0.15s',
+      }}
+      onMouseEnter={e => {
+        if (!disabled) {
+          e.currentTarget.style.transform = 'translateY(-1px)'
+          e.currentTarget.style.boxShadow = '-6px -6px 12px rgba(255,255,255,0.04), 6px 6px 12px rgba(0,0,0,0.55), 0 4px 20px rgba(139,92,246,0.3)'
+        }
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = disabled ? 'none' : '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)'
+      }}
+    >
+      {children}
+    </button>
+  )
 }
 
 // ─── Stepper SVG ──────────────────────────────────────────────────────────────
@@ -53,95 +156,104 @@ interface StepperProps {
 
 function StepperSVG({
   nodeYs, stepStates, pipePath, totalH,
-  ballRef, highlightRef, progressRef, pipeRef,
-  goToStep,
+  ballRef, highlightRef, progressRef, pipeRef, goToStep,
 }: StepperProps) {
   if (!pipePath) return null
   return (
-    <svg
-      width="160"
-      height={totalH}
-      style={{ overflow: 'visible', display: 'block' }}
-    >
+    <svg width="160" height={totalH} style={{ overflow: 'visible', display: 'block' }}>
       <defs>
         <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-          <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#6d28d9" stopOpacity="0.8" />
+          <stop offset="0%"   stopColor="#c4b5fd" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.85" />
         </linearGradient>
         <radialGradient id="ballGrad" cx="35%" cy="30%" r="65%">
-          <stop offset="0%"   stopColor="rgba(255,255,255,0.8)" />
-          <stop offset="30%"  stopColor="rgba(220,220,235,1)" />
-          <stop offset="70%"  stopColor="rgba(140,140,165,1)" />
-          <stop offset="100%" stopColor="rgba(60,60,80,1)" />
+          <stop offset="0%"   stopColor="rgba(255,255,255,0.75)" />
+          <stop offset="25%"  stopColor="rgba(210,210,225,0.95)" />
+          <stop offset="65%"  stopColor="rgba(130,130,150,1)" />
+          <stop offset="100%" stopColor="rgba(55,55,75,1)" />
         </radialGradient>
-        <filter id="ballShadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="rgba(0,0,0,0.8)" />
+        <filter id="ballShadow" x="-100%" y="-100%" width="300%" height="300%">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="rgba(0,0,0,0.7)" />
+        </filter>
+        <filter id="fluidGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="rgba(139,92,246,0.5)" />
         </filter>
       </defs>
 
-      {/* Pipe layers — groove carved into bg */}
-      <path d={pipePath} stroke="#0a0c12"                  strokeWidth="20" fill="none" />
-      <path d={pipePath} stroke="#13151e"                  strokeWidth="16" fill="none" />
-      <path d={pipePath} stroke="rgba(255,255,255,0.03)"   strokeWidth="15" fill="none" />
-      <path d={pipePath} stroke="#1a1d25"                  strokeWidth="11" fill="none" />
+      {/* ── 4-layer neumorphic pipe groove ── */}
+      <path d={pipePath} stroke="#0a0c12"                stroke-width="22" fill="none" />
+      <path d={pipePath} stroke="#13151e"                strokeWidth="18" fill="none" />
+      <path d={pipePath} stroke="rgba(255,255,255,0.035)" strokeWidth="16" fill="none" />
+      <path d={pipePath} stroke="#1a1d25"                strokeWidth="12" fill="none" />
 
-      {/* Progress fill — purple fluid */}
+      {/* ── Purple fluid progress ── */}
       <path
         ref={progressRef}
         d={pipePath}
         stroke="url(#purpleGrad)"
-        strokeWidth="7"
+        strokeWidth="10"
         fill="none"
         strokeLinecap="round"
+        filter="url(#fluidGlow)"
       />
 
-      {/* Invisible path for ball positioning (getTotalLength / getPointAtLength) */}
+      {/* ── Invisible path for getTotalLength / getPointAtLength ── */}
       <path ref={pipeRef} d={pipePath} stroke="transparent" strokeWidth="1" fill="none" />
 
-      {/* Step nodes */}
+      {/* ── Step nodes ── */}
       {nodeYs.map((y, i) => {
         const state = stepStates[i]
         const label = STEP_LABELS[i]
+        const isCompleted = state === 'completed'
+        const isActive    = state === 'active'
         return (
           <g
             key={i}
-            onClick={() => state === 'completed' ? goToStep(i) : undefined}
-            style={{ cursor: state === 'completed' ? 'pointer' : 'default' }}
+            onClick={() => isCompleted ? goToStep(i) : undefined}
+            style={{ cursor: isCompleted ? 'pointer' : 'default' }}
           >
+            {/* Pulse ring — active only */}
+            {isActive && (
+              <circle cx="80" cy={y} r="14" fill="none" stroke="#8b5cf6" strokeWidth="1" opacity="0.5">
+                <animate attributeName="r"       values="16;24;16" dur="2s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite" />
+              </circle>
+            )}
+
+            {/* Node circle */}
+            {isCompleted && (
+              <circle cx="80" cy={y} r="14" fill="#8b5cf6" stroke="rgba(139,92,246,0.4)" strokeWidth="2" filter="url(#nodeGlow)" />
+            )}
+            {isActive && (
+              <circle cx="80" cy={y} r="14" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
+            )}
             {state === 'upcoming' && (
-              <>
-                <circle cx="80" cy={y} r="12" fill="#1e2128" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                <text x="80" y={y} fill="rgba(229,231,235,0.35)" fontSize="11" fontFamily="JetBrains Mono, monospace" textAnchor="middle" dy="4">{i + 1}</text>
-              </>
+              <circle cx="80" cy={y} r="14" fill="#1e2128" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
             )}
-            {state === 'active' && (
-              <>
-                <circle cx="80" cy={y} r="12" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="1.5" />
-                <circle cx="80" cy={y} r="12" fill="none" stroke="#8b5cf6" strokeWidth="1" opacity="0.4">
-                  <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite" />
-                </circle>
-                <text x="80" y={y} fill="#e5e7eb" fontSize="11" fontFamily="JetBrains Mono, monospace" fontWeight="600" textAnchor="middle" dy="4">{i + 1}</text>
-              </>
-            )}
-            {state === 'completed' && (
-              <>
-                <circle cx="80" cy={y} r="12" fill="#8b5cf6" stroke="rgba(139,92,246,0.4)" strokeWidth="1.5" filter="url(#ballShadow)" />
-                <text x="80" y={y} fill="white" fontSize="11" textAnchor="middle" dy="4">✓</text>
-              </>
-            )}
-            {/* Label right of node */}
+
+            {/* Number / checkmark */}
             <text
-              x="100"
-              y={y + 4}
+              x="80" y={y + 5}
+              textAnchor="middle"
+              fill={isCompleted ? '#fff' : isActive ? '#fff' : 'rgba(229,231,235,0.35)'}
+              fontSize="12"
+              fontWeight={isActive ? '600' : '400'}
+              fontFamily="JetBrains Mono, monospace"
+            >
+              {isCompleted ? '✓' : i + 1}
+            </text>
+
+            {/* Label */}
+            <text
+              x="102" y={y + 5}
               fontSize="11"
               fontFamily="JetBrains Mono, monospace"
-              fontWeight={state === 'active' ? '600' : '400'}
-              fill={
-                state === 'completed' ? '#8b5cf6'
-                : state === 'active'  ? '#e5e7eb'
-                : 'rgba(229,231,235,0.35)'
-              }
+              fontWeight={isActive ? '600' : '400'}
+              fill={isCompleted ? '#8b5cf6' : isActive ? '#e5e7eb' : 'rgba(229,231,235,0.35)'}
             >
               {label}
             </text>
@@ -149,22 +261,20 @@ function StepperSVG({
         )
       })}
 
-      {/* Steel ball */}
+      {/* ── Steel ball ── */}
       <circle
         ref={ballRef}
-        cx="80"
-        cy={nodeYs[0] ?? 0}
-        r="9"
+        cx="80" cy={nodeYs[0] ?? 0}
+        r="10"
         fill="url(#ballGrad)"
         filter="url(#ballShadow)"
       />
       {/* Specular highlight */}
       <circle
         ref={highlightRef}
-        cx={80 - 3}
-        cy={(nodeYs[0] ?? 0) - 3}
-        r="3"
-        fill="rgba(255,255,255,0.65)"
+        cx={80 - 3} cy={(nodeYs[0] ?? 0) - 4}
+        r="4"
+        fill="rgba(255,255,255,0.6)"
         style={{ pointerEvents: 'none' }}
       />
     </svg>
@@ -183,13 +293,9 @@ interface Step1Props {
   onContinue: () => void
 }
 
-function Step1({
-  selectedModules, toggleModule,
-  selectedBundle, setSelectedBundle,
-  staaxPlan, setStaaxPlan,
-  onContinue,
-}: Step1Props) {
+function Step1({ selectedModules, toggleModule, selectedBundle, setSelectedBundle, staaxPlan, setStaaxPlan, onContinue }: Step1Props) {
   const availableModules = modulePrices.filter(m => !m.comingSoon)
+  const comingSoonModules = modulePrices.filter(m => m.comingSoon)
 
   function selectBundle(bid: string) {
     if (selectedBundle === bid) {
@@ -197,93 +303,143 @@ function Step1({
       return
     }
     setSelectedBundle(bid)
-    const b = bundles.find(x => x.id === bid)
-    if (b) {
-      b.includedModules.forEach(mid => {
-        if (!selectedModules.includes(mid)) toggleModule(mid)
-      })
-    }
+    // Deselect individual modules
+    selectedModules.forEach(mid => toggleModule(mid))
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
-        Select individual modules or pick a bundle below.
-      </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {/* Module list */}
+      <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, boxShadow: 'var(--neu-raised)', overflow: 'hidden', marginBottom: 32 }}>
+        {availableModules.map((mp, idx) => {
+          const mod      = modules.find(m => m.id === mp.moduleId)
+          const selected = selectedModules.includes(mp.moduleId)
+          return (
+            <div key={mp.moduleId}>
+              <div
+                onClick={() => toggleModule(mp.moduleId)}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto',
+                  alignItems: 'center',
+                  padding: '18px 24px',
+                  borderBottom: idx < availableModules.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                  cursor: 'pointer',
+                  background: selected ? 'rgba(139,92,246,0.06)' : 'transparent',
+                  transition: 'background 0.15s',
+                  position: 'relative',
+                }}
+                onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = selected ? 'rgba(139,92,246,0.06)' : 'transparent' }}
+              >
+                {/* Left: dot + name + tagline */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{
+                    width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                    background: mod?.color ?? 'var(--text-mute)',
+                    boxShadow: selected ? `0 0 10px ${mod?.color}` : 'none',
+                    transition: 'box-shadow 0.2s',
+                  }} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{mp.moduleName}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 2 }}>{mod?.tagline}</div>
+                  </div>
+                </div>
 
-      {/* Module rows */}
-      {availableModules.map(mp => {
-        const mod = modules.find(m => m.id === mp.moduleId)
-        const selected = selectedModules.includes(mp.moduleId)
-        return (
-          <div key={mp.moduleId}>
+                {/* Right: price + checkbox */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-dim)', textAlign: 'right' }}>
+                    {mp.moduleId === 'staax' ? 'from ₹1,500/mo' : `₹${mp.price!.toLocaleString('en-IN')}/mo`}
+                  </div>
+                  {/* Checkbox */}
+                  <div style={{
+                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: selected ? 'none' : '1.5px solid rgba(255,255,255,0.12)',
+                    background: selected ? 'var(--accent)' : 'transparent',
+                    transition: 'all 0.2s',
+                  }}>
+                    {selected && (
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* STAAX plan expansion */}
+              {mp.moduleId === 'staax' && (
+                <div style={{
+                  maxHeight: selected ? 80 : 0,
+                  overflow: 'hidden',
+                  opacity: selected ? 1 : 0,
+                  transition: 'max-height 0.25s ease, opacity 0.25s',
+                }}>
+                  <div style={{ display: 'flex', gap: 10, padding: '12px 0 8px 52px' }}>
+                    {STAAX_PLANS.map(p => (
+                      <div
+                        key={p.id}
+                        onClick={e => { e.stopPropagation(); setStaaxPlan(p.id) }}
+                        style={{
+                          padding: '8px 18px', borderRadius: 20,
+                          border: staaxPlan === p.id ? '1.5px solid var(--accent)' : '1.5px solid rgba(255,255,255,0.1)',
+                          background: staaxPlan === p.id ? 'rgba(139,92,246,0.12)' : 'var(--bg)',
+                          color: staaxPlan === p.id ? 'var(--text)' : 'var(--text-dim)',
+                          fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                          fontFamily: 'var(--font-mono)',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        {p.label} · ₹{p.price.toLocaleString('en-IN')} · {p.desc}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {/* Coming soon modules */}
+        {comingSoonModules.map((mp) => {
+          const mod = modules.find(m => m.id === mp.moduleId)
+          return (
             <div
-              onClick={() => toggleModule(mp.moduleId)}
+              key={mp.moduleId}
               style={{
-                padding: '14px 18px',
-                borderRadius: 16,
-                cursor: 'pointer',
-                transition: 'all 200ms',
-                borderLeft: selected ? `3px solid ${mod?.color ?? 'var(--accent)'}` : '3px solid transparent',
-                background: selected
-                  ? `color-mix(in srgb, ${mod?.color ?? '#8b5cf6'} 8%, var(--bg-surface))`
-                  : 'var(--bg-surface)',
-                boxShadow: 'var(--neu-raised)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              } as React.CSSProperties}
+                display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center',
+                padding: '18px 24px',
+                borderTop: '1px solid rgba(255,255,255,0.04)',
+                opacity: 0.55, cursor: 'default',
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: mod?.color ?? 'var(--text-mute)', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: mod?.color ?? '#888', flexShrink: 0 }} />
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{mp.moduleName}</div>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>{mp.moduleName}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 2 }}>{mod?.tagline}</div>
                 </div>
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: selected ? mod?.color ?? 'var(--accent)' : 'var(--text-dim)', flexShrink: 0, marginLeft: 16 }}>
-                {mp.moduleId === 'staax'
-                  ? `₹${(staaxPlan === 'lite' ? 1000 : 4000).toLocaleString('en-IN')}/mo`
-                  : `₹${mp.price!.toLocaleString('en-IN')}/mo`}
-              </div>
+              <span style={{
+                fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em',
+                padding: '3px 8px', borderRadius: 6,
+                border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-mute)',
+                background: 'rgba(255,255,255,0.03)',
+              }}>
+                Coming soon
+              </span>
             </div>
-
-            {/* STAAX plan inline expansion */}
-            {mp.moduleId === 'staax' && selected && (
-              <div style={{ display: 'flex', gap: 8, marginTop: 6, marginLeft: 20, marginBottom: 4 }}>
-                {STAAX_PLANS.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => setStaaxPlan(p.id)}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: 'var(--radius-pill)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      fontFamily: 'var(--font-mono)',
-                      fontWeight: 600,
-                      background: staaxPlan === p.id ? 'var(--accent)' : 'var(--bg)',
-                      color: staaxPlan === p.id ? 'white' : 'var(--text-dim)',
-                      boxShadow: staaxPlan === p.id ? '0 0 12px rgba(139,92,246,0.4)' : 'var(--neu-raised-sm)',
-                      transition: 'all 200ms',
-                    }}
-                  >
-                    {p.label} — ₹{p.price.toLocaleString('en-IN')}/mo ({p.desc})
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
 
       {/* Bundles */}
-      <div style={{ marginTop: 24, marginBottom: 4 }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>
-          Or choose a bundle
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 16 }}>
+          — or pick a bundle
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {bundles.map(b => {
             const sel = selectedBundle === b.id
             return (
@@ -291,24 +447,29 @@ function Step1({
                 key={b.id}
                 onClick={() => selectBundle(b.id)}
                 style={{
-                  padding: '16px 18px',
-                  background: 'var(--bg-surface)',
-                  borderRadius: 16,
+                  background: sel ? 'rgba(139,92,246,0.08)' : 'var(--bg-elevated)',
+                  borderRadius: 14,
+                  padding: '20px',
+                  border: sel ? '1.5px solid var(--accent)' : '1.5px solid rgba(255,255,255,0.06)',
                   cursor: 'pointer',
-                  transition: 'all 200ms',
-                  boxShadow: sel ? '0 0 0 1.5px var(--accent), var(--neu-raised)' : 'var(--neu-raised)',
+                  transition: 'all 0.2s',
+                  boxShadow: 'var(--neu-raised-sm)',
                   position: 'relative',
                 }}
+                onMouseEnter={e => { if (!sel) e.currentTarget.style.borderColor = 'rgba(139,92,246,0.3)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = sel ? 'var(--accent)' : 'rgba(255,255,255,0.06)' }}
               >
                 {b.featured && (
                   <div style={{ position: 'absolute', top: 10, right: 12, fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)' }}>
                     Popular
                   </div>
                 )}
-                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 }}>{b.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-mute)', marginBottom: 10 }}>{b.tagline}</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: sel ? 'var(--accent)' : 'var(--text)' }}>
-                  ₹{b.price.toLocaleString('en-IN')}<span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-mute)' }}>/mo</span>
+                <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', fontSize: 14, marginBottom: 4, color: 'var(--text)' }}>{b.name}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 500, color: 'var(--accent)', marginBottom: 8 }}>
+                  ₹{b.price.toLocaleString('en-IN')}<span style={{ fontSize: 12, color: 'var(--text-mute)' }}>/mo</span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-mute)', lineHeight: 1.6 }}>
+                  {b.includedModules.map(id => modules.find(m => m.id === id)?.name).filter(Boolean).join(' + ')}
                 </div>
               </div>
             )
@@ -316,35 +477,14 @@ function Step1({
         </div>
       </div>
 
-      {/* Continue button (shown when nothing selected — always shown) */}
       {selectedModules.length === 0 && !selectedBundle && (
-        <p style={{ fontSize: 12, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)', marginTop: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
           Select at least one module or bundle to continue.
         </p>
       )}
-
-      <button
-        onClick={onContinue}
-        disabled={selectedModules.length === 0 && !selectedBundle}
-        style={{
-          marginTop: 16,
-          height: 46,
-          padding: '0 28px',
-          borderRadius: 'var(--radius-pill)',
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: 14,
-          fontWeight: 600,
-          color: 'var(--accent)',
-          background: 'var(--bg)',
-          boxShadow: 'var(--neu-raised)',
-          alignSelf: 'flex-start',
-          transition: 'all 200ms',
-          opacity: (selectedModules.length === 0 && !selectedBundle) ? 0.4 : 1,
-        }}
-      >
+      <BtnPrimary onClick={onContinue} disabled={selectedModules.length === 0 && !selectedBundle}>
         Continue →
-      </button>
+      </BtnPrimary>
     </div>
   )
 }
@@ -358,56 +498,35 @@ interface Step2Props {
 }
 
 function Step2({ email, setEmail, onContinue }: Step2Props) {
-  const [name, setName] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '14px 16px',
-    borderRadius: 12,
-    border: 'none',
-    background: '#1a1d25',
-    color: 'var(--text)',
-    fontSize: 15,
-    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
-    outline: 'none',
-    boxSizing: 'border-box',
-  }
-
-  const canContinue = name.trim() && email.trim() && password.length >= 8 && password === confirm
+  const [password, setPassword]     = useState('')
+  const [confirm, setConfirm]       = useState('')
+  const mismatch  = confirm.length > 0 && password !== confirm
+  const canSubmit = email.trim() && password.length >= 8 && password === confirm
 
   return (
-    <div style={{ maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <input style={inputStyle} placeholder="Full name" value={name} onChange={e => setName(e.target.value)} />
-      <input style={inputStyle} placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-      <input style={inputStyle} placeholder="Password (min 8 chars)" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-      <input style={inputStyle} placeholder="Confirm password" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} />
-      {confirm && password !== confirm && (
-        <p style={{ margin: 0, fontSize: 12, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>Passwords don't match.</p>
-      )}
-      <button
-        onClick={onContinue}
-        disabled={!canContinue}
-        style={{
-          marginTop: 8,
-          height: 46,
-          padding: '0 28px',
-          borderRadius: 'var(--radius-pill)',
-          border: 'none',
-          cursor: canContinue ? 'pointer' : 'not-allowed',
-          fontSize: 14,
-          fontWeight: 600,
-          color: 'var(--accent)',
-          background: 'var(--bg)',
-          boxShadow: 'var(--neu-raised)',
-          alignSelf: 'flex-start',
-          opacity: canContinue ? 1 : 0.4,
-          transition: 'all 200ms',
-        }}
-      >
+    <div style={{ maxWidth: 480 }}>
+      <p style={{ fontSize: 15, color: 'var(--text-dim)', marginBottom: 32 }}>Create your LIFEX OS account</p>
+
+      <div style={{ marginBottom: 20 }}>
+        <label style={labelStyle}>Email address</label>
+        <FormInput type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <label style={labelStyle}>Password</label>
+        <FormInput type="password" placeholder="Min 8 characters" value={password} onChange={e => setPassword(e.target.value)} />
+      </div>
+      <div style={{ marginBottom: 32 }}>
+        <label style={labelStyle}>Confirm password</label>
+        <FormInput type="password" placeholder="Repeat password" value={confirm} onChange={e => setConfirm(e.target.value)} />
+        {mismatch && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#ef4444', fontFamily: 'var(--font-mono)' }}>Passwords don't match.</p>}
+      </div>
+
+      <BtnPrimary onClick={onContinue} disabled={!canSubmit}>
         Continue →
-      </button>
+      </BtnPrimary>
+      <p style={{ marginTop: 20, fontSize: 13, color: 'var(--text-mute)' }}>
+        Already have an account? <span style={{ color: 'var(--accent)', cursor: 'pointer' }}>Sign in →</span>
+      </p>
     </div>
   )
 }
@@ -420,10 +539,10 @@ interface Step3Props {
 }
 
 function Step3({ email, onContinue }: Step3Props) {
-  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [otp, setOtp]           = useState(['', '', '', '', '', ''])
   const [countdown, setCountdown] = useState(30)
   const [canResend, setCanResend] = useState(false)
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const boxRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
     if (countdown <= 0) { setCanResend(true); return }
@@ -433,83 +552,96 @@ function Step3({ email, onContinue }: Step3Props) {
 
   function handleChange(i: number, val: string) {
     if (val.length > 1) {
-      // paste support
       const digits = val.replace(/\D/g, '').slice(0, 6)
       const next = [...otp]
-      for (let j = 0; j < digits.length; j++) next[i + j < 6 ? i + j : 5] = digits[j]
+      for (let j = 0; j < digits.length; j++) {
+        const pos = i + j < 6 ? i + j : 5
+        next[pos] = digits[j]
+      }
       setOtp(next)
-      inputRefs.current[Math.min(i + digits.length, 5)]?.focus()
+      boxRefs.current[Math.min(i + digits.length, 5)]?.focus()
       return
     }
     const next = [...otp]
     next[i] = val.replace(/\D/g, '')
     setOtp(next)
-    if (val && i < 5) inputRefs.current[i + 1]?.focus()
+    if (val && i < 5) boxRefs.current[i + 1]?.focus()
   }
 
   function handleKeyDown(i: number, e: React.KeyboardEvent) {
-    if (e.key === 'Backspace' && !otp[i] && i > 0) {
-      inputRefs.current[i - 1]?.focus()
-    }
-  }
-
-  const boxStyle: React.CSSProperties = {
-    width: 40, height: 48,
-    textAlign: 'center',
-    fontSize: 20,
-    fontFamily: 'var(--font-mono)',
-    fontWeight: 700,
-    borderRadius: 12,
-    border: 'none',
-    background: '#1a1d25',
-    color: 'var(--text)',
-    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
-    outline: 'none',
+    if (e.key === 'Backspace' && !otp[i] && i > 0) boxRefs.current[i - 1]?.focus()
   }
 
   const filled = otp.every(d => d !== '')
 
+  const otpBoxStyle: React.CSSProperties = {
+    width: 52, height: 60, textAlign: 'center',
+    fontSize: 24, fontWeight: 600, fontFamily: 'var(--font-mono)',
+    borderRadius: 12, border: 'none',
+    background: '#1a1d25', color: 'var(--text)',
+    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
+    outline: 'none', caretColor: 'var(--accent)',
+    boxSizing: 'border-box' as const,
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 20 }}>
-      <div>
-        <p style={{ margin: 0, fontSize: 16, color: 'var(--text)' }}>Check your inbox</p>
-        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>{email || 'your email'}</p>
+    <div style={{ maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <p style={{ fontSize: 15, color: 'var(--text-dim)', marginBottom: 16 }}>
+        Check your inbox — we sent a code to
+      </p>
+      <div style={{
+        display: 'inline-block', marginBottom: 24,
+        fontFamily: 'var(--font-mono)', fontSize: 13,
+        color: 'var(--accent)', padding: '10px 16px',
+        background: 'rgba(139,92,246,0.08)', borderRadius: 8,
+      }}>
+        {email || 'your@email.com'}
       </div>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-mute)', marginBottom: 20 }}>
+        Enter the 6-digit code below
+      </p>
+
+      <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
         {otp.map((d, i) => (
           <input
             key={i}
-            ref={el => { inputRefs.current[i] = el }}
-            style={boxStyle}
+            ref={el => { boxRefs.current[i] = el }}
+            style={otpBoxStyle}
             value={d}
             maxLength={6}
+            inputMode="numeric"
+            pattern="[0-9]"
             onChange={e => handleChange(i, e.target.value)}
             onKeyDown={e => handleKeyDown(i, e)}
-            inputMode="numeric"
+            onFocus={e => { e.currentTarget.style.boxShadow = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5), 0 0 0 1.5px rgba(139,92,246,0.35)' }}
+            onBlur={e => { e.currentTarget.style.boxShadow = 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)' }}
           />
         ))}
       </div>
-      <div style={{ fontSize: 12, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
-        {canResend
-          ? <button onClick={() => { setCountdown(30); setCanResend(false) }} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 12, padding: 0 }}>Resend code</button>
-          : `Resend in ${countdown}s`}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+        <button
+          onClick={() => { if (canResend) { setCountdown(30); setCanResend(false) } }}
+          style={{
+            fontSize: 13, background: 'none', border: 'none',
+            color: canResend ? 'var(--accent)' : 'var(--text-mute)',
+            cursor: canResend ? 'pointer' : 'not-allowed',
+            fontFamily: 'var(--font-body)',
+            textDecoration: canResend ? 'underline' : 'none',
+          }}
+        >
+          Resend code
+        </button>
+        {!canResend && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-mute)' }}>
+            in {countdown}s
+          </span>
+        )}
       </div>
-      <button
-        onClick={onContinue}
-        disabled={!filled}
-        style={{
-          height: 46, padding: '0 28px',
-          borderRadius: 'var(--radius-pill)', border: 'none',
-          cursor: filled ? 'pointer' : 'not-allowed',
-          fontSize: 14, fontWeight: 600,
-          color: 'var(--accent)', background: 'var(--bg)',
-          boxShadow: 'var(--neu-raised)',
-          opacity: filled ? 1 : 0.4,
-          transition: 'all 200ms',
-        }}
-      >
+
+      <BtnPrimary onClick={onContinue} disabled={!filled}>
         Verify →
-      </button>
+      </BtnPrimary>
     </div>
   )
 }
@@ -523,83 +655,117 @@ interface Step4Props {
   selectedAddons: string[]
   toggleAddon: (id: string) => void
   total: number
+  goToStep: (i: number) => void
   onContinue: () => void
 }
 
-function Step4({ selectedModules, selectedBundle, staaxPlan, selectedAddons, toggleAddon, total, onContinue }: Step4Props) {
-  const addonDefs = [
-    { id: 'ai',     label: 'AI Layer',      delta: '+₹300' },
-    { id: 'mobile', label: 'Mobile App',    delta: '+₹200' },
-    { id: 'byok',   label: 'BYOK discount', delta: '−₹100' },
-  ]
-
+function Step4({ selectedModules, selectedBundle, staaxPlan, selectedAddons, toggleAddon, total, goToStep, onContinue }: Step4Props) {
   const displayModules = selectedBundle
     ? (bundles.find(b => b.id === selectedBundle)?.includedModules ?? [])
     : selectedModules
 
+  const addonTotal = selectedAddons.reduce((sum, id) => {
+    const a = ADDON_DEFS.find(x => x.id === id)
+    return sum + (a?.delta ?? 0)
+  }, 0)
+  void addonTotal // used implicitly via total prop
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 480 }}>
-      {/* Selected modules */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {displayModules.map(mid => {
-          const mod = modules.find(m => m.id === mid)
-          const mp  = modulePrices.find(m => m.moduleId === mid)
-          const price = mid === 'staax' ? (staaxPlan === 'lite' ? 1000 : 4000) : mp?.price ?? 0
+    <div style={{ maxWidth: 560 }}>
+      <p style={{ fontSize: 15, color: 'var(--text-dim)', marginBottom: 24 }}>Review your selection</p>
+
+      {/* Module / bundle list */}
+      <div style={{ background: 'var(--bg-elevated)', borderRadius: 14, boxShadow: 'var(--neu-raised-sm)', padding: '8px 0', marginBottom: 24 }}>
+        {selectedBundle ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}>
+            <span style={{ fontSize: 14, color: 'var(--text)' }}>
+              {bundles.find(b => b.id === selectedBundle)?.name}
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text-dim)' }}>
+              ₹{bundles.find(b => b.id === selectedBundle)!.price.toLocaleString('en-IN')}/mo
+            </span>
+          </div>
+        ) : displayModules.length === 0 ? (
+          <div style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-mute)', fontStyle: 'italic' }}>No modules selected</div>
+        ) : displayModules.map((mid, midIdx) => {
+          const mod   = modules.find(m => m.id === mid)
+          const mp    = modulePrices.find(m => m.moduleId === mid)
+          const price = mid === 'staax' ? (staaxPlan === 'lite' ? 1500 : 4000) : mp?.price ?? 0
           return (
-            <div key={mid} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--bg-surface)', borderRadius: 14, boxShadow: 'var(--neu-raised)' }}>
+            <div
+              key={mid}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '14px 20px',
+                borderBottom: midIdx < displayModules.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: mod?.color ?? 'var(--accent)' }} />
-                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{mod?.name ?? mid.toUpperCase()}</span>
-                {mid === 'staax' && <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-mute)' }}>({staaxPlan === 'lite' ? '10 algos' : '30 algos'})</span>}
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: mod?.color ?? 'var(--accent)', flexShrink: 0 }} />
+                <span style={{ fontSize: 14, color: 'var(--text)' }}>
+                  {mod?.name ?? mid.toUpperCase()}
+                  {mid === 'staax' && <span style={{ fontSize: 12, color: 'var(--text-mute)', marginLeft: 6 }}>({staaxPlan === 'lite' ? 'Lite' : 'Pro'})</span>}
+                </span>
               </div>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text-dim)' }}>₹{price.toLocaleString('en-IN')}/mo</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text-dim)' }}>
+                ₹{price.toLocaleString('en-IN')}/mo
+              </span>
             </div>
           )
         })}
       </div>
 
-      {/* Add-on chips */}
-      <div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 10 }}>Add-ons</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {addonDefs.map(a => {
-            const active = selectedAddons.includes(a.id)
-            return (
-              <button
-                key={a.id}
-                onClick={() => toggleAddon(a.id)}
-                style={{
-                  padding: '8px 16px', borderRadius: 'var(--radius-pill)', border: 'none', cursor: 'pointer',
-                  fontSize: 12, fontFamily: 'var(--font-mono)', fontWeight: 600,
-                  background: active ? 'var(--accent)' : 'var(--bg)',
-                  color: active ? 'white' : 'var(--text-dim)',
-                  boxShadow: active ? '0 0 12px rgba(139,92,246,0.4)' : 'var(--neu-raised-sm)',
-                  transition: 'all 200ms',
-                }}
-              >
-                {a.label} <span style={{ opacity: 0.7 }}>{a.delta}</span>
-              </button>
-            )
-          })}
-        </div>
+      {/* Add-ons */}
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>
+        Add-ons
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
+        {ADDON_DEFS.map(a => {
+          const active = selectedAddons.includes(a.id)
+          return (
+            <div
+              key={a.id}
+              onClick={() => toggleAddon(a.id)}
+              style={{
+                padding: '9px 18px', borderRadius: 20, cursor: 'pointer',
+                border: active ? '1.5px solid var(--accent)' : '1.5px solid rgba(255,255,255,0.08)',
+                background: active ? 'rgba(139,92,246,0.1)' : 'var(--bg)',
+                color: active ? 'var(--text)' : 'var(--text-dim)',
+                fontSize: 13, fontFamily: 'var(--font-mono)', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLDivElement).style.color = 'var(--accent)' } }}
+              onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLDivElement).style.color = 'var(--text-dim)' } }}
+            >
+              {a.label} · {a.sign}₹{Math.abs(a.delta)}
+            </div>
+          )
+        })}
       </div>
 
       {/* Total */}
-      <div style={{ padding: '20px 24px', background: 'var(--bg-surface)', borderRadius: 16, boxShadow: 'var(--neu-inset)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>Total / month</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 32, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>₹{total.toLocaleString('en-IN')}</span>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: 20,
+        background: 'rgba(139,92,246,0.06)',
+        borderRadius: 12,
+        border: '1px solid rgba(139,92,246,0.15)',
+        marginBottom: 24,
+      }}>
+        <span style={{ fontWeight: 600, fontSize: 15 }}>Total</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 24, fontWeight: 600, color: 'var(--accent)' }}>
+          ₹{total.toLocaleString('en-IN')}<span style={{ fontSize: 13, color: 'var(--text-mute)' }}>/mo</span>
+        </span>
       </div>
 
-      <button
-        onClick={onContinue}
-        style={{
-          height: 46, padding: '0 28px', borderRadius: 'var(--radius-pill)', border: 'none', cursor: 'pointer',
-          fontSize: 14, fontWeight: 600, color: 'var(--accent)', background: 'var(--bg)',
-          boxShadow: 'var(--neu-raised)', alignSelf: 'flex-start', transition: 'all 200ms',
-        }}
+      {/* Edit link */}
+      <span
+        onClick={() => goToStep(0)}
+        style={{ fontSize: 13, color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline', display: 'inline-block', marginBottom: 24 }}
       >
-        Confirm →
-      </button>
+        ← Edit selection
+      </span>
+      <br />
+      <BtnPrimary onClick={onContinue}>Confirm →</BtnPrimary>
     </div>
   )
 }
@@ -610,63 +776,81 @@ interface Step5Props {
   total: number
   selectedModules: string[]
   selectedBundle: string | null
+  staaxPlan: StaaxPlan
+  selectedAddons: string[]
   onContinue: () => void
 }
 
-function Step5({ total, selectedModules, selectedBundle, onContinue }: Step5Props) {
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '14px 16px',
-    borderRadius: 12,
-    border: 'none',
-    background: '#1a1d25',
-    color: 'var(--text)',
-    fontSize: 15,
-    boxShadow: 'inset -4px -4px 8px rgba(255,255,255,0.03), inset 4px 4px 8px rgba(0,0,0,0.5)',
-    outline: 'none',
-    boxSizing: 'border-box',
-  }
+function Step5({ total, selectedModules, selectedBundle, staaxPlan, selectedAddons, onContinue }: Step5Props) {
+  const displayModules = selectedBundle
+    ? (bundles.find(b => b.id === selectedBundle)?.includedModules ?? [])
+    : selectedModules
 
   return (
-    <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ maxWidth: 520 }}>
+      <p style={{ fontSize: 15, color: 'var(--text-dim)', marginBottom: 24 }}>Complete your subscription</p>
+
       {/* Order summary */}
-      <div style={{ padding: '20px 24px', background: 'var(--bg-surface)', borderRadius: 16, boxShadow: 'var(--neu-raised)' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 12 }}>Order Summary</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ fontSize: 14, color: 'var(--text-dim)' }}>
-            {selectedBundle
-              ? bundles.find(b => b.id === selectedBundle)?.name
-              : `${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''}`}
-          </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>₹{total.toLocaleString('en-IN')}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-mute)' }}>/mo</span></span>
+      <div style={{ background: 'var(--bg-elevated)', borderRadius: 14, boxShadow: 'var(--neu-raised-sm)', padding: 20, marginBottom: 28 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 16 }}>
+          Order summary
         </div>
-        <p style={{ margin: '12px 0 0', fontSize: 12, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>3-day free trial · cancel anytime</p>
+        {selectedBundle ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: 'var(--text-dim)', marginBottom: 10 }}>
+            <span>{bundles.find(b => b.id === selectedBundle)?.name}</span>
+            <span style={{ fontFamily: 'var(--font-mono)' }}>₹{bundles.find(b => b.id === selectedBundle)!.price.toLocaleString('en-IN')}</span>
+          </div>
+        ) : displayModules.map(mid => {
+          const mod = modules.find(m => m.id === mid)
+          const mp  = modulePrices.find(m => m.moduleId === mid)
+          const price = mid === 'staax' ? (staaxPlan === 'lite' ? 1500 : 4000) : mp?.price ?? 0
+          return (
+            <div key={mid} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: 'var(--text-dim)', marginBottom: 10 }}>
+              <span>{mod?.name ?? mid.toUpperCase()}</span>
+              <span style={{ fontFamily: 'var(--font-mono)' }}>₹{price.toLocaleString('en-IN')}</span>
+            </div>
+          )
+        })}
+        {selectedAddons.map(id => {
+          const a = ADDON_DEFS.find(x => x.id === id)
+          if (!a) return null
+          return (
+            <div key={id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: 'var(--text-dim)', marginBottom: 10 }}>
+              <span>{a.label}</span>
+              <span style={{ fontFamily: 'var(--font-mono)' }}>{a.sign}₹{Math.abs(a.delta)}</span>
+            </div>
+          )
+        })}
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginTop: 4, fontWeight: 600, fontSize: 16 }}>
+          <span>Total billed monthly</span>
+          <span style={{ fontFamily: 'var(--font-mono)' }}>₹{total.toLocaleString('en-IN')}</span>
+        </div>
       </div>
 
       {/* Card form */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <input style={inputStyle} placeholder="Cardholder name" />
-        <input style={inputStyle} placeholder="Card number" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <input style={inputStyle} placeholder="MM / YY" />
-          <input style={inputStyle} placeholder="CVV" />
+      <div style={{ marginBottom: 20 }}>
+        <label style={labelStyle}>Card number</label>
+        <FormInput type="text" placeholder="1234 5678 9012 3456" />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Expiry</label>
+          <FormInput type="text" placeholder="MM / YY" />
+        </div>
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>CVV</label>
+          <FormInput type="text" placeholder="•••" />
         </div>
       </div>
+      <div style={{ marginBottom: 28 }}>
+        <label style={labelStyle}>Name on card</label>
+        <FormInput type="text" placeholder="As printed on card" />
+      </div>
 
-      <p style={{ margin: 0, fontSize: 12, color: 'var(--text-mute)', fontFamily: 'var(--font-mono)' }}>
-        Razorpay integration coming soon. Your card will not be charged.
+      <BtnPrimary onClick={onContinue} full>Subscribe Now →</BtnPrimary>
+      <p style={{ fontSize: 12, color: 'var(--text-mute)', textAlign: 'center', marginTop: 16 }}>
+        Powered by Razorpay — integration coming soon
       </p>
-
-      <button
-        onClick={onContinue}
-        style={{
-          height: 46, padding: '0 28px', borderRadius: 'var(--radius-pill)', border: 'none', cursor: 'pointer',
-          fontSize: 14, fontWeight: 600, color: 'white', background: 'var(--accent)',
-          boxShadow: '0 0 20px rgba(139,92,246,0.4)', alignSelf: 'flex-start', transition: 'all 200ms',
-        }}
-      >
-        Subscribe Now →
-      </button>
     </div>
   )
 }
@@ -685,32 +869,37 @@ function Step6({ selectedModules, selectedBundle }: Step6Props) {
     : selectedModules
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 28 }}>
-      {/* Check circle */}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '40px 0' }}>
+      {/* Pulsing success ring */}
       <div style={{
-        width: 72, height: 72, borderRadius: '50%',
-        background: 'var(--bg-surface)',
-        boxShadow: '0 0 40px rgba(139,92,246,0.6), var(--neu-raised)',
+        width: 80, height: 80, borderRadius: '50%',
+        background: 'rgba(139,92,246,0.15)',
+        border: '2px solid var(--accent)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 32,
+        fontSize: 36,
+        animation: 'successPulse 2s ease-in-out infinite',
+        marginBottom: 32,
       }}>
         ✓
       </div>
-      <div>
-        <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 48, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text)' }}>
-          You're in.
-        </h1>
-        <p style={{ margin: '8px 0 0', fontSize: 16, color: 'var(--text-mute)' }}>Your LIFEX OS is ready.</p>
-      </div>
 
-      {/* Module list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 48, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 12, color: 'var(--text)' }}>
+        You're in.
+      </h1>
+      <p style={{ fontSize: 16, color: 'var(--text-dim)', marginBottom: 40 }}>Your LIFEX OS is ready.</p>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 40 }}>
         {displayModules.map(mid => {
           const mod = modules.find(m => m.id === mid)
           return (
-            <div key={mid} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--text-dim)' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: mod?.color ?? 'var(--accent)', flexShrink: 0 }} />
-              {mod?.name ?? mid.toUpperCase()} — {mod?.tagline}
+            <div key={mid} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 16px', borderRadius: 20,
+              background: 'var(--bg-elevated)', border: '1px solid rgba(255,255,255,0.06)',
+              fontSize: 13, color: 'var(--text-dim)',
+            }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: mod?.color ?? 'var(--accent)' }} />
+              {mod?.name ?? mid.toUpperCase()}
             </div>
           )
         })}
@@ -719,13 +908,27 @@ function Step6({ selectedModules, selectedBundle }: Step6Props) {
       <button
         onClick={() => navigate('/')}
         style={{
-          height: 52, padding: '0 36px', borderRadius: 'var(--radius-pill)', border: 'none', cursor: 'pointer',
-          fontSize: 15, fontWeight: 700, color: 'white', background: 'var(--accent)',
-          boxShadow: '0 0 30px rgba(139,92,246,0.5)', transition: 'all 200ms',
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '14px 36px', borderRadius: 12, border: 'none', cursor: 'pointer',
+          fontSize: 15, fontWeight: 600, color: '#fff', background: 'var(--accent)',
+          boxShadow: '-4px -4px 8px rgba(255,255,255,0.03), 4px 4px 8px rgba(0,0,0,0.5)',
+          transition: 'transform 0.15s',
         }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)' }}
       >
         Open LIFEX OS →
       </button>
+      <p style={{ fontSize: 12, color: 'var(--text-mute)', marginTop: 16 }}>
+        You'll receive a confirmation email shortly.
+      </p>
+
+      <style>{`
+        @keyframes successPulse {
+          0%, 100% { box-shadow: 0 0 24px rgba(139,92,246,0.35), 0 0 48px rgba(139,92,246,0.1); }
+          50%       { box-shadow: 0 0 40px rgba(139,92,246,0.55), 0 0 80px rgba(139,92,246,0.2); }
+        }
+      `}</style>
     </div>
   )
 }
@@ -734,18 +937,14 @@ function Step6({ selectedModules, selectedBundle }: Step6Props) {
 
 function MobileStepper({ stepStates }: { stepStates: StepState[] }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', padding: '12px 0' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', padding: '12px 24px' }}>
       {stepStates.map((s, i) => (
-        <div
-          key={i}
-          style={{
-            width: s === 'active' ? 24 : 8,
-            height: 8,
-            borderRadius: 4,
-            background: s === 'completed' ? 'var(--accent)' : s === 'active' ? 'var(--accent)' : 'rgba(255,255,255,0.15)',
-            transition: 'all 300ms ease',
-          }}
-        />
+        <div key={i} style={{
+          width: s === 'active' ? 24 : 10, height: 10, borderRadius: 5,
+          background: s === 'completed' ? 'var(--accent)' : s === 'active' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
+          boxShadow: s === 'active' ? '0 0 8px rgba(139,92,246,0.6)' : 'none',
+          transition: 'all 0.3s',
+        }} />
       ))}
     </div>
   )
@@ -768,56 +967,65 @@ function StepSection({ stepNum, title, state, goToStep, children }: StepSectionP
   return (
     <section
       id={`step-${stepNum}`}
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '80px 0 40px',
-      }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '80px 0' }}
     >
-      {/* Header */}
+      {/* Step badge row */}
       <div
         onClick={() => isCompleted ? goToStep(stepNum - 1) : undefined}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          marginBottom: isActive ? 28 : 0,
-          cursor: isCompleted ? 'pointer' : 'default',
-          opacity: state === 'upcoming' ? 0.4 : 1,
-          transition: 'opacity 300ms ease',
-        }}
+        style={{ cursor: isCompleted ? 'pointer' : 'default', marginBottom: 12 }}
       >
-        <div style={{
-          width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: isCompleted ? 'var(--accent)' : isActive ? 'var(--bg-elevated)' : 'var(--bg-surface)',
-          boxShadow: isActive ? 'var(--neu-raised)' : 'none',
-          fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)',
-          color: isCompleted ? 'white' : isActive ? 'var(--accent)' : 'var(--text-mute)',
-          flexShrink: 0,
-        }}>
-          {isCompleted ? '✓' : stepNum}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          {/* Badge circle */}
+          <div style={{
+            width: 24, height: 24, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-mono)',
+            background: isCompleted
+              ? 'rgba(139,92,246,0.6)'
+              : isActive
+              ? 'var(--accent)'
+              : 'rgba(255,255,255,0.06)',
+            color: (isCompleted || isActive) ? '#fff' : 'var(--text-mute)',
+            border: (isCompleted || isActive) ? 'none' : '1px solid rgba(255,255,255,0.08)',
+            boxShadow: isActive ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
+            transition: 'all 0.3s',
+            flexShrink: 0,
+          }}>
+            {isCompleted ? '✓' : stepNum}
+          </div>
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.1em',
+            textTransform: 'uppercase' as const,
+            color: isActive ? 'var(--accent)' : 'var(--text-mute)',
+            transition: 'color 0.3s',
+          }}>
+            Step {stepNum} of 6
+          </span>
         </div>
+
+        {/* Title */}
         <h2 style={{
           margin: 0,
           fontFamily: 'var(--font-display)',
-          fontSize: isActive ? 'clamp(28px, 3.5vw, 42px)' : 20,
+          fontSize: isActive ? 'clamp(24px, 3vw, 36px)' : 20,
           fontWeight: 700,
           letterSpacing: '-0.02em',
-          color: isActive ? 'var(--text)' : isCompleted ? 'var(--accent)' : 'var(--text-mute)',
-          transition: 'font-size 400ms ease, color 300ms ease',
+          color: isActive ? 'var(--text)' : isCompleted ? 'var(--text-dim)' : 'var(--text-mute)',
+          opacity: state === 'upcoming' ? 0.5 : 1,
+          transition: 'font-size 400ms ease, color 300ms ease, opacity 300ms ease',
         }}>
+          {isCompleted && <span style={{ color: 'var(--accent)', marginRight: 8 }}>✓</span>}
           {title}
         </h2>
       </div>
 
-      {/* Body */}
+      {/* Step body */}
       <div style={{
-        maxHeight: isActive ? 900 : 0,
+        maxHeight: isActive ? 1600 : 0,
         opacity: isActive ? 1 : 0,
         overflow: 'hidden',
-        transition: 'max-height 600ms ease, opacity 500ms ease',
+        transform: isActive ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'max-height 600ms ease, opacity 500ms ease 400ms, transform 500ms ease 400ms',
       }}>
         {children}
       </div>
@@ -828,12 +1036,10 @@ function StepSection({ stepNum, title, state, goToStep, children }: StepSectionP
 // ─── Main StartPage ───────────────────────────────────────────────────────────
 
 export default function StartPage() {
-  // Pipe / animation state
-  const [nodeYs, setNodeYs]         = useState<number[]>([])
-  const [pipePath, setPipePath]     = useState('')
-  const [totalH, setTotalH]         = useState(0)
+  const [nodeYs, setNodeYs]     = useState<number[]>([])
+  const [pipePath, setPipePath] = useState('')
+  const [totalH, setTotalH]     = useState(0)
 
-  // Step state
   const [currentStep, setCurrentStep] = useState(0)
   const [stepStates, setStepStates]   = useState<StepState[]>(
     ['active', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming']
@@ -846,23 +1052,21 @@ export default function StartPage() {
   const [staaxPlan, setStaaxPlan]             = useState<StaaxPlan>('lite')
   const [email, setEmail]                     = useState('')
 
-  // Refs for animation
+  // Refs
   const ballRef      = useRef<SVGCircleElement>(null) as React.RefObject<SVGCircleElement>
   const highlightRef = useRef<SVGCircleElement>(null) as React.RefObject<SVGCircleElement>
-  const progressRef  = useRef<SVGPathElement>(null) as React.RefObject<SVGPathElement>
-  const pipeRef      = useRef<SVGPathElement>(null) as React.RefObject<SVGPathElement>
+  const progressRef  = useRef<SVGPathElement>(null)   as React.RefObject<SVGPathElement>
+  const pipeRef      = useRef<SVGPathElement>(null)   as React.RefObject<SVGPathElement>
 
   const currentProgressRef = useRef(0)
   const isAnimatingRef     = useRef(false)
+  const stepFractionsRef   = useRef<number[]>([0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
-  // Compute step fractions after path is known
-  const stepFractionsRef = useRef<number[]>([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-
-  // Build pipe on mount and resize
+  // Build pipe geometry
   useEffect(() => {
     function build() {
-      const h = window.innerHeight
-      const ys = NODE_VH.map(f => f * h)
+      const h   = window.innerHeight
+      const ys  = NODE_VH.map(f => f * h)
       const path = buildPipePath(ys, h)
       setNodeYs(ys)
       setPipePath(path)
@@ -873,33 +1077,31 @@ export default function StartPage() {
     return () => window.removeEventListener('resize', build)
   }, [])
 
-  // After path renders, set up total length and initialize ball + progress
+  // After path renders: compute real fractions via binary search, init ball
   useEffect(() => {
-    if (!pipeRef.current || !pipePath) return
-    const len = pipeRef.current.getTotalLength()
+    if (!pipeRef.current || !pipePath || !nodeYs.length) return
+    const path = pipeRef.current
+    const len  = path.getTotalLength()
     if (!len) return
 
-    // Place ball at step 0
-    const pt = pipeRef.current.getPointAtLength(0)
+    // Binary search for each node's Y position along the path
+    const fracs = nodeYs.map(y => findFractionForY(path, y, len))
+    stepFractionsRef.current = fracs
+
+    // Init ball at step 0 node
+    const pt0 = path.getPointAtLength(fracs[0] * len)
     if (ballRef.current) {
-      ballRef.current.setAttribute('cx', String(pt.x))
-      ballRef.current.setAttribute('cy', String(pt.y))
+      ballRef.current.setAttribute('cx', String(pt0.x))
+      ballRef.current.setAttribute('cy', String(pt0.y))
     }
     if (highlightRef.current) {
-      highlightRef.current.setAttribute('cx', String(pt.x - 3))
-      highlightRef.current.setAttribute('cy', String(pt.y - 3))
+      highlightRef.current.setAttribute('cx', String(pt0.x - 3))
+      highlightRef.current.setAttribute('cy', String(pt0.y - 4))
     }
-
-    // Init progress to empty
     if (progressRef.current) {
-      progressRef.current.style.strokeDasharray = String(len)
+      progressRef.current.style.strokeDasharray  = String(len)
       progressRef.current.style.strokeDashoffset = String(len)
     }
-
-    // Compute actual step fractions from node positions
-    // Each node sits on the path — approximate by finding nearest point length
-    const fractions: number[] = nodeYs.map((_, i) => i / (NODE_VH.length - 1))
-    stepFractionsRef.current = fractions
   }, [pipePath, nodeYs])
 
   const moveBallTo = useCallback((targetFraction: number, onComplete?: () => void) => {
@@ -908,40 +1110,41 @@ export default function StartPage() {
     const path: SVGPathElement = pipeRef.current
 
     isAnimatingRef.current = true
-    const totalLength = path.getTotalLength()
+    const totalLength   = path.getTotalLength()
     const startFraction = currentProgressRef.current
-    const duration = 2200
-    const startTime = performance.now()
+    const goingDown     = targetFraction > startFraction
+    const duration      = 2200
+    const startTime     = performance.now()
     let rotation = 0
-    const goingDown = targetFraction > startFraction
 
     function frame(now: number) {
       const elapsed = now - startTime
-      const t = Math.min(elapsed / duration, 1)
-      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-      const fraction = startFraction + (targetFraction - startFraction) * eased
-      const dist = fraction * totalLength
-      const pt = path.getPointAtLength(dist)
+      const t       = Math.min(elapsed / duration, 1)
+      const eased   = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      const frac    = startFraction + (targetFraction - startFraction) * eased
+      const dist    = frac * totalLength
+      const pt      = path.getPointAtLength(dist)
 
+      rotation += goingDown ? 9 : -9
       if (ballRef.current) {
         ballRef.current.setAttribute('cx', String(pt.x))
         ballRef.current.setAttribute('cy', String(pt.y))
-        rotation += goingDown ? 6 : -6
-        ballRef.current.setAttribute('transform', `rotate(${rotation}, ${pt.x}, ${pt.y})`)
+        ballRef.current.setAttribute('transform', `rotate(${rotation},${pt.x},${pt.y})`)
       }
       if (highlightRef.current) {
         highlightRef.current.setAttribute('cx', String(pt.x - 3))
-        highlightRef.current.setAttribute('cy', String(pt.y - 3))
+        highlightRef.current.setAttribute('cy', String(pt.y - 4))
+        highlightRef.current.setAttribute('transform', `rotate(${rotation},${pt.x - 3},${pt.y - 4})`)
       }
       if (progressRef.current) {
-        progressRef.current.style.strokeDashoffset = String(totalLength - fraction * totalLength)
+        progressRef.current.style.strokeDashoffset = String(totalLength - frac * totalLength)
       }
 
       if (t < 1) {
         requestAnimationFrame(frame)
       } else {
         currentProgressRef.current = targetFraction
-        isAnimatingRef.current = false
+        isAnimatingRef.current     = false
         onComplete?.()
       }
     }
@@ -950,24 +1153,24 @@ export default function StartPage() {
 
   function goToNextStep() {
     const next = currentStep + 1
-    if (next > 5) return
-    const targetFraction = stepFractionsRef.current[next]
-    moveBallTo(targetFraction, () => {
+    if (next > 5 || isAnimatingRef.current) return
+    moveBallTo(stepFractionsRef.current[next], () => {
       setStepStates(prev => {
         const s = [...prev]
         s[currentStep] = 'completed'
-        s[next] = 'active'
+        s[next]        = 'active'
         return s
       })
       setCurrentStep(next)
-      document.getElementById(`step-${next + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      setTimeout(() => {
+        document.getElementById(`step-${next + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 80)
     })
   }
 
   function goToStep(targetIdx: number) {
     if (targetIdx >= currentStep || isAnimatingRef.current) return
-    const targetFraction = stepFractionsRef.current[targetIdx]
-    moveBallTo(targetFraction, () => {
+    moveBallTo(stepFractionsRef.current[targetIdx], () => {
       setStepStates(prev => {
         const s = [...prev]
         for (let i = targetIdx + 1; i <= currentStep; i++) s[i] = 'upcoming'
@@ -975,7 +1178,9 @@ export default function StartPage() {
         return s
       })
       setCurrentStep(targetIdx)
-      document.getElementById(`step-${targetIdx + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      setTimeout(() => {
+        document.getElementById(`step-${targetIdx + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 80)
     })
   }
 
@@ -984,7 +1189,7 @@ export default function StartPage() {
     setSelectedModules(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     )
-    setSelectedBundle(null)
+    if (selectedBundle) setSelectedBundle(null)
   }
 
   function toggleAddon(id: string) {
@@ -993,90 +1198,84 @@ export default function StartPage() {
     )
   }
 
-  // Total calculation
+  // Total
   const total = (() => {
+    let base = 0
     if (selectedBundle) {
-      const b = bundles.find(x => x.id === selectedBundle)
-      if (!b) return 0
-      let t = b.price
-      selectedAddons.forEach(aid => {
-        if (!b.includedAddons.includes(aid)) {
-          const a = addons.find(x => x.id === aid)
-          if (a) t += a.priceDelta
-        }
-      })
-      return t
+      base = bundles.find(x => x.id === selectedBundle)?.price ?? 0
+    } else {
+      base = selectedModules.reduce((sum, mid) => {
+        if (mid === 'staax') return sum + (staaxPlan === 'lite' ? 1500 : 4000)
+        const mp = modulePrices.find(m => m.moduleId === mid)
+        return sum + (mp?.price ?? 0)
+      }, 0)
     }
-    let t = selectedModules.reduce((sum, mid) => {
-      if (mid === 'staax') return sum + (staaxPlan === 'lite' ? 1000 : 4000)
-      const mp = modulePrices.find(m => m.moduleId === mid)
-      return sum + (mp?.price ?? 0)
+    const addonSum = selectedAddons.reduce((sum, id) => {
+      const a = ADDON_DEFS.find(x => x.id === id)
+      return sum + (a?.delta ?? 0)
     }, 0)
-    selectedAddons.forEach(aid => {
-      const a = addons.find(x => x.id === aid)
-      if (a) t += a.priceDelta
-    })
-    return Math.max(0, t)
+    return Math.max(0, base + addonSum)
   })()
 
-  const showStickyBar = (selectedModules.length > 0 || selectedBundle !== null) && currentStep === 0
+  const hasSelection  = selectedModules.length > 0 || selectedBundle !== null
+  const showStickyBar = hasSelection && currentStep === 0
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', position: 'relative' }}>
 
       {/* ── Top Nav ── */}
       <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, height: 56, zIndex: 100,
-        background: 'var(--bg)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        position: 'fixed', top: 0, left: 0, right: 0, height: 64, zIndex: 100,
+        background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.05)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 32px',
+        padding: '0 60px',
       }}>
-        <Link to="/" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.03em', background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-          LIFEX OS
+        <Link to="/" style={{
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18,
+          letterSpacing: '0.04em', color: 'var(--text)',
+        }}>
+          LIFEX <span style={{ color: 'var(--accent)' }}>OS</span>
         </Link>
-        <Link to="/login" style={{ fontSize: 13, color: 'var(--text-mute)' }}>
-          Already a member? <span style={{ color: 'var(--accent)' }}>Sign in</span>
+        <Link to="/login" style={{ fontSize: 13, color: 'var(--text-dim)', transition: 'color 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-dim)'}
+        >
+          Already a member? <strong style={{ color: 'var(--accent)' }}>Sign in →</strong>
         </Link>
       </header>
 
       {/* ── Mobile dot stepper ── */}
-      <div className="start-mobile-stepper" style={{ display: 'none', position: 'fixed', top: 56, left: 0, right: 0, zIndex: 99, background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.04)', padding: '8px 0' }}>
+      <div className="start-mobile-stepper" style={{
+        display: 'none', position: 'fixed', top: 64, left: 0, right: 0, zIndex: 99,
+        background: 'var(--bg)', borderBottom: '1px solid rgba(255,255,255,0.05)',
+      }}>
         <MobileStepper stepStates={stepStates} />
       </div>
 
-      {/* ── Left pipe (desktop) ── */}
-      <div
-        className="start-pipe"
-        style={{
-          position: 'fixed', top: 0, left: 48, width: 160, height: '100vh',
-          zIndex: 0, overflow: 'visible',
-          // sits behind header
-        }}
-      >
-        {pipePath && (
-          <StepperSVG
-            nodeYs={nodeYs}
-            stepStates={stepStates}
-            pipePath={pipePath}
-            totalH={totalH}
-            ballRef={ballRef}
-            highlightRef={highlightRef}
-            progressRef={progressRef}
-            pipeRef={pipeRef}
-            goToStep={goToStep}
-          />
+      {/* ── Left pipe column ── */}
+      <div className="start-pipe" style={{
+        position: 'fixed', left: 0, top: 0, bottom: 0, width: 220,
+        pointerEvents: 'none', zIndex: 50, overflow: 'visible',
+      }}>
+        {pipePath && totalH > 0 && (
+          <div style={{ pointerEvents: 'all' }}>
+            <StepperSVG
+              nodeYs={nodeYs}
+              stepStates={stepStates}
+              pipePath={pipePath}
+              totalH={totalH}
+              ballRef={ballRef}
+              highlightRef={highlightRef}
+              progressRef={progressRef}
+              pipeRef={pipeRef}
+              goToStep={goToStep}
+            />
+          </div>
         )}
       </div>
 
       {/* ── Right column ── */}
-      <main
-        className="start-main"
-        style={{
-          marginLeft: 240,
-          padding: '0 80px 200px',
-        }}
-      >
+      <main className="start-main" style={{ marginLeft: 220, padding: '64px 80px 200px' }}>
         <StepSection stepNum={1} title="Choose Plan" state={stepStates[0]} goToStep={goToStep}>
           <Step1
             selectedModules={selectedModules}
@@ -1105,6 +1304,7 @@ export default function StartPage() {
             selectedAddons={selectedAddons}
             toggleAddon={toggleAddon}
             total={total}
+            goToStep={goToStep}
             onContinue={goToNextStep}
           />
         </StepSection>
@@ -1114,6 +1314,8 @@ export default function StartPage() {
             total={total}
             selectedModules={selectedModules}
             selectedBundle={selectedBundle}
+            staaxPlan={staaxPlan}
+            selectedAddons={selectedAddons}
             onContinue={goToNextStep}
           />
         </StepSection>
@@ -1123,46 +1325,37 @@ export default function StartPage() {
         </StepSection>
       </main>
 
-      {/* ── Sticky bottom bar (step 1, when selection exists) ── */}
+      {/* ── Sticky bottom bar ── */}
       {showStickyBar && (
-        <div
-          className="start-sticky-bar"
-          style={{
-            position: 'fixed', bottom: 0, left: 240, right: 0, zIndex: 50,
-            background: 'var(--bg-surface)',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-            padding: '16px 80px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}
-        >
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text-dim)' }}>
-            {selectedBundle
-              ? bundles.find(b => b.id === selectedBundle)?.name
-              : `${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''}`
-            }
-            {' · '}
-            <span style={{ color: 'var(--text)', fontWeight: 700 }}>₹{total.toLocaleString('en-IN')}/mo</span>
-          </span>
-          <button
-            onClick={goToNextStep}
-            style={{
-              height: 40, padding: '0 24px', borderRadius: 'var(--radius-pill)', border: 'none', cursor: 'pointer',
-              fontSize: 13, fontWeight: 600, color: 'var(--accent)', background: 'var(--bg)',
-              boxShadow: 'var(--neu-raised)', transition: 'all 200ms',
-            }}
-          >
-            Continue →
-          </button>
+        <div className="start-sticky-bar" style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
+          background: 'var(--bg-surface)', borderTop: '1px solid rgba(255,255,255,0.08)',
+          padding: '16px 80px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          transform: 'translateY(0)',
+          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
+        }}>
+          <div>
+            <div style={{ fontSize: 14, color: 'var(--text-dim)' }}>
+              {selectedBundle
+                ? `Bundle: ${bundles.find(b => b.id === selectedBundle)?.name}`
+                : `${selectedModules.length} module${selectedModules.length !== 1 ? 's' : ''} selected`}
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 600, color: 'var(--accent)' }}>
+              ₹{total.toLocaleString('en-IN')} / month
+            </div>
+          </div>
+          <BtnPrimary onClick={goToNextStep}>Continue →</BtnPrimary>
         </div>
       )}
 
-      {/* ── Responsive styles ── */}
+      {/* ── Responsive ── */}
       <style>{`
         @media (max-width: 768px) {
           .start-pipe { display: none !important; }
           .start-mobile-stepper { display: block !important; }
-          .start-main { margin-left: 0 !important; padding: 0 24px 200px !important; }
-          .start-sticky-bar { left: 0 !important; padding: 16px 24px !important; }
+          .start-main { margin-left: 0 !important; padding: 108px 24px 120px !important; }
+          .start-sticky-bar { padding: 16px 24px !important; }
         }
       `}</style>
     </div>
