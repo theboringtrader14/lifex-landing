@@ -166,13 +166,15 @@ export default function PricingSection() {
                 {...(isIndividual && !isDisabled ? { type: 'button' as const, onClick: () => toggleAddon(a.id) } : {})}
                 style={{
                   all: 'unset',
+                  boxSizing: 'border-box',
                   cursor: isIndividual && !isDisabled ? 'pointer' : 'default',
-                  padding: '20px 24px',
-                  margin: '8px',
-                  marginRight: idx < addons.length - 1 ? '0' : '8px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg)',
-                  boxShadow: isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
+                  padding: isIndividual ? '20px 24px' : '28px 32px',
+                  margin: isIndividual ? '8px' : 0,
+                  marginRight: isIndividual && idx < addons.length - 1 ? '0' : (isIndividual ? '8px' : 0),
+                  borderRight: !isIndividual && idx < addons.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  borderRadius: isIndividual ? 'var(--radius-md)' : 0,
+                  background: isIndividual ? 'var(--bg)' : 'transparent',
+                  boxShadow: !isIndividual ? 'none' : isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -259,7 +261,7 @@ function IndividualView({
     <>
       <div
         className="individual-grid"
-        style={{ display: 'grid', gridTemplateColumns: '65% 35%', gap: 24, alignItems: 'start' }}
+        style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}
       >
         {/* LEFT — clickable module list */}
         <div
@@ -397,7 +399,7 @@ function IndividualView({
         </div>
 
         {/* RIGHT — sticky cart */}
-        <div style={{ position: 'sticky', top: 100, paddingRight: 16 }}>
+        <div style={{ position: 'sticky', top: 100 }}>
           <CartPanel
             selectedModules={selectedModules}
             selectedAddons={selectedAddons}
@@ -432,7 +434,12 @@ function CartPanel({
   onToggleAddon,
   total,
 }: CartPanelProps) {
-  const isEmpty = selectedModules.length === 0
+  const isEmpty = selectedModules.length === 0 && selectedAddons.length === 0
+
+  // Newest first = top of deck. Reverse so last-added sits at index 0.
+  const moduleItems = [...selectedModules].reverse().map((id) => ({ kind: 'module' as const, id }))
+  const addonItems  = [...selectedAddons].reverse().map((id)  => ({ kind: 'addon'  as const, id }))
+  const cartItems   = [...moduleItems, ...addonItems]
 
   return (
     <div
@@ -445,254 +452,152 @@ function CartPanel({
       }}
     >
       {isEmpty ? (
-        /* State A — empty */
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 12,
-            padding: '24px 0',
-          }}
-        >
-          <svg
-            width="36"
-            height="36"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--text-mute)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+        /* ── State A: empty ── */
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 0' }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
+            stroke="var(--text-mute)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
             <line x1="3" y1="6" x2="21" y2="6" />
             <path d="M16 10a4 4 0 01-8 0" />
           </svg>
-          <span
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 14,
-              fontWeight: 600,
-              color: 'var(--text-dim)',
-              textAlign: 'center',
-              lineHeight: 1.4,
-            }}
-          >
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.4 }}>
             Select modules to build your plan
           </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 12,
-              color: 'var(--text-mute)',
-              textAlign: 'center',
-            }}
-          >
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-mute)', textAlign: 'center' }}>
             Click any module to add it
           </span>
         </div>
       ) : (
-        /* State B — modules selected */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Header */}
-          <span
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 14,
-              fontWeight: 600,
-              color: 'var(--text)',
-              letterSpacing: '-0.01em',
-            }}
-          >
+        /* ── State B: stacked card deck ── */
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em', marginBottom: 14 }}>
             Your Plan
           </span>
 
-          {/* Selected modules */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {selectedModules.map((id) => {
-              const mp = modulePrices.find((m) => m.moduleId === id)
-              const mod = getModuleById(id)
-              if (!mp) return null
-              return (
-                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      background: mod?.color ?? 'var(--accent)',
-                      flexShrink: 0,
-                      display: 'inline-block',
-                    }}
-                  />
-                  <span
-                    style={{
-                      flex: 1,
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: 'var(--text)',
-                    }}
-                  >
-                    {mp.moduleName}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 13,
-                      color: 'var(--text-dim)',
-                    }}
-                  >
-                    ₹{mp.price!.toLocaleString('en-IN')}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveModule(id)}
-                    style={{
-                      all: 'unset',
-                      cursor: 'pointer',
-                      color: 'var(--text-mute)',
-                      fontSize: 15,
-                      lineHeight: 1,
-                      padding: '2px 5px',
-                      borderRadius: 4,
-                      transition: 'color 120ms ease',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text)' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-mute)' }}
-                    aria-label={`Remove ${mp.moduleName}`}
-                  >
-                    ×
-                  </button>
-                </div>
-              )
-            })}
+          {/* Deck */}
+          <div style={{ position: 'relative' }}>
+            <AnimatePresence initial={false}>
+              {cartItems.map((item, idx) => {
+                const isTop = idx === 0
+                const sharedStyle: React.CSSProperties = {
+                  position: 'relative',
+                  zIndex: cartItems.length - idx,
+                  marginTop: isTop ? 0 : -10,
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--bg)',
+                  boxShadow: 'var(--neu-raised-sm)',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }
+
+                if (item.kind === 'module') {
+                  const mp  = modulePrices.find((m) => m.moduleId === item.id)
+                  const mod = getModuleById(item.id)
+                  if (!mp) return null
+                  return (
+                    <motion.div
+                      key={`module-${item.id}`}
+                      layout
+                      initial={{ y: -48, opacity: 0, scale: 0.88 }}
+                      animate={{ y: 0, opacity: 1, scale: 1 }}
+                      exit={{ x: 64, opacity: 0, scale: 0.94, transition: { duration: 0.18 } }}
+                      transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                      style={{ ...sharedStyle, borderLeft: `3px solid ${mod?.color ?? 'var(--accent)'}` }}
+                    >
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: mod?.color ?? 'var(--accent)', flexShrink: 0, display: 'inline-block' }} />
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                        {mp.moduleName}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: 'var(--text-dim)' }}>
+                        ₹{mp.price!.toLocaleString('en-IN')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveModule(item.id)}
+                        style={{ all: 'unset', cursor: 'pointer', color: 'var(--text-mute)', fontSize: 15, lineHeight: 1, padding: '2px 4px', borderRadius: 4, transition: 'color 120ms ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-mute)' }}
+                        aria-label={`Remove ${mp.moduleName}`}
+                      >×</button>
+                    </motion.div>
+                  )
+                } else {
+                  const a = addons.find((x) => x.id === item.id)
+                  if (!a) return null
+                  const isDiscount = a.priceDelta < 0
+                  return (
+                    <motion.div
+                      key={`addon-${item.id}`}
+                      layout
+                      initial={{ y: -48, opacity: 0, scale: 0.88 }}
+                      animate={{ y: 0, opacity: 1, scale: 1 }}
+                      exit={{ x: 64, opacity: 0, scale: 0.94, transition: { duration: 0.18 } }}
+                      transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                      style={{ ...sharedStyle, borderLeft: '3px solid var(--border-subtle)' }}
+                    >
+                      <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: 'var(--text)' }}>
+                        <span style={{ color: 'var(--text-mute)', fontWeight: 400, fontSize: 10.5, letterSpacing: '0.04em' }}>Add-on  </span>
+                        {a.name}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: isDiscount ? 'var(--status-live)' : 'var(--text-dim)' }}>
+                        {isDiscount ? '−' : '+'}₹{Math.abs(a.priceDelta)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onToggleAddon(item.id)}
+                        style={{ all: 'unset', cursor: 'pointer', color: 'var(--text-mute)', fontSize: 15, lineHeight: 1, padding: '2px 4px', borderRadius: 4, transition: 'color 120ms ease' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-mute)' }}
+                        aria-label={`Remove ${a.name}`}
+                      >×</button>
+                    </motion.div>
+                  )
+                }
+              })}
+            </AnimatePresence>
           </div>
 
-          {/* Selected add-ons — plain rows, same style as modules */}
-          {selectedAddons.length > 0 && (
-            <>
-              {selectedAddons.map((id) => {
-                const a = addons.find((x) => x.id === id)
-                if (!a) return null
-                const isDiscount = a.priceDelta < 0
-                return (
-                  <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 2,
-                        background: 'var(--text-mute)',
-                        flexShrink: 0,
-                        display: 'inline-block',
-                      }}
-                    />
-                    <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
-                      <span style={{ color: 'var(--text-mute)', fontWeight: 400 }}>Add-on  </span>
-                      {a.name}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 13,
-                        color: isDiscount ? 'var(--status-live)' : 'var(--text-dim)',
-                      }}
-                    >
-                      {isDiscount ? '−' : '+'}₹{Math.abs(a.priceDelta)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onToggleAddon(id)}
-                      style={{
-                        all: 'unset',
-                        cursor: 'pointer',
-                        color: 'var(--text-mute)',
-                        fontSize: 15,
-                        lineHeight: 1,
-                        padding: '2px 5px',
-                        borderRadius: 4,
-                        transition: 'color 120ms ease',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text)' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-mute)' }}
-                      aria-label={`Remove ${a.name}`}
-                    >
-                      ×
-                    </button>
-                  </div>
-                )
-              })}
-            </>
-          )}
+          {/* Total + CTA */}
+          <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ height: 1, background: 'var(--border-subtle)' }} />
 
-          <div style={{ height: 1, background: 'var(--border-subtle)' }} />
-
-          {/* Total */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 13,
-                fontWeight: 600,
-                color: 'var(--text-dim)',
-              }}
-            >
-              Total
-            </span>
-            <div style={{ textAlign: 'right' }}>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color: 'var(--text)',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                ₹{Math.max(0, total).toLocaleString('en-IN')}
-              </div>
-              <div
-                style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}
-              >
-                per month
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, color: 'var(--text-dim)' }}>Total</span>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+                  ₹{Math.max(0, total).toLocaleString('en-IN')}
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}>per month</div>
               </div>
             </div>
-          </div>
 
-          {/* Trial note */}
-          <div
-            style={{
-              textAlign: 'center',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              color: 'var(--text-mute)',
-            }}
-          >
-            {trialDays}-day free trial · Cancel anytime
-          </div>
+            <div style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)' }}>
+              {trialDays}-day free trial · Cancel anytime
+            </div>
 
-          {/* CTA */}
-          <button
-            type="button"
-            style={{
-              all: 'unset',
-              cursor: 'pointer',
-              display: 'block',
-              textAlign: 'center',
-              padding: '12px 0',
-              borderRadius: '100px',
-              background: 'var(--bg)',
-              boxShadow: 'var(--neu-raised)',
-              fontFamily: 'var(--font-display)',
-              fontSize: 14,
-              fontWeight: 600,
-              color: 'var(--accent)',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            Subscribe →
-          </button>
+            <button
+              type="button"
+              style={{
+                all: 'unset',
+                cursor: 'pointer',
+                display: 'block',
+                textAlign: 'center',
+                padding: '12px 0',
+                borderRadius: '100px',
+                background: 'var(--bg)',
+                boxShadow: 'var(--neu-raised)',
+                fontFamily: 'var(--font-display)',
+                fontSize: 14,
+                fontWeight: 600,
+                color: 'var(--accent)',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Subscribe →
+            </button>
+          </div>
         </div>
       )}
     </div>
