@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import type { Module } from '@/data/modules'
@@ -8,6 +8,109 @@ import { ModuleIcon } from './icons/ModuleIcons'
 interface Props {
   module: Module | null
   onClose: () => void
+}
+
+const staaxPlans = [
+  {
+    id: 'lite' as const,
+    name: 'STAAX Lite',
+    price: 1500,
+    bullets: [
+      'Up to 10 algos',
+      'Unlimited brokers',
+      'All entry types (STBT, BTST, Intraday, ORB, W&T)',
+      'Indicator bots',
+      'SmartStream live feed',
+    ],
+  },
+  {
+    id: 'pro' as const,
+    name: 'STAAX Pro',
+    price: 4000,
+    bullets: [
+      'Up to 30 algos',
+      'Unlimited brokers',
+      'Everything in Lite',
+      'Priority execution',
+      'Advanced analytics',
+    ],
+  },
+]
+
+function StaaxPlanSelector({ color }: { color: string }) {
+  const [selected, setSelected] = useState<'lite' | 'pro'>('lite')
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {staaxPlans.map((plan) => {
+        const isActive = selected === plan.id
+        return (
+          <button
+            key={plan.id}
+            type="button"
+            onClick={() => setSelected(plan.id)}
+            style={{
+              all: 'unset',
+              cursor: 'pointer',
+              display: 'block',
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg)',
+              boxShadow: isActive
+                ? `var(--neu-raised-sm), 0 0 14px ${color}44`
+                : 'var(--neu-raised-sm)',
+              border: isActive ? `1px solid ${color}` : '1px solid transparent',
+              transition: 'border 160ms ease, box-shadow 160ms ease',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: isActive ? color : 'var(--text)',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {plan.name}
+              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
+                ₹{plan.price.toLocaleString('en-IN')}
+                <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-mute)' }}>/mo</span>
+              </span>
+            </div>
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {plan.bullets.map((b) => (
+                <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11.5, color: 'var(--text-dim)', lineHeight: 1.4 }}>
+                  <span style={{ flexShrink: 0, width: 12, height: 12, borderRadius: '50%', background: 'var(--bg)', boxShadow: 'inset 2px 2px 4px var(--shadow-dark)', marginTop: 1, display: 'inline-block' }} />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </button>
+        )
+      })}
+      <button
+        type="button"
+        style={{
+          marginTop: 4,
+          padding: '10px 0',
+          borderRadius: 'var(--radius-md)',
+          background: color,
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-display)',
+          fontSize: 13,
+          fontWeight: 600,
+          color: '#fff',
+          letterSpacing: '-0.01em',
+        }}
+      >
+        Start free trial
+      </button>
+    </div>
+  )
 }
 
 // Maps Module status (ALLCAPS enum) to CSS class suffix
@@ -185,12 +288,19 @@ export default function ModuleModal({ module, onClose }: Props) {
                       borderTop: '1px solid var(--border-subtle)',
                     }}
                   >
-                    <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--text-mute)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
-                      Starting at
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, color: 'var(--text)', fontWeight: 600 }}>
-                      {module.startingPrice ? `₹${module.startingPrice}/mo` : 'Pricing TBD'}
-                    </div>
+                    {module.id === 'staax'
+                      ? <StaaxPlanSelector color={module.color} />
+                      : (
+                        <>
+                          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--text-mute)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
+                            Starting at
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, color: 'var(--text)', fontWeight: 600 }}>
+                            {module.startingPrice ? `₹${module.startingPrice}/mo` : 'Pricing TBD'}
+                          </div>
+                        </>
+                      )
+                    }
                   </div>
                 </div>
               </div>

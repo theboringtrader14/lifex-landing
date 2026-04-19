@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { addons, bundles, moduleTiers, trialDays } from '@/data/pricing'
+import { addons, bundles, modulePrices, trialDays } from '@/data/pricing'
 import { getModuleById } from '@/data/modules'
 import BundleToggle, { type PricingView } from './BundleToggle'
 import PricingCard from './PricingCard'
@@ -216,43 +216,14 @@ function IndividualView() {
         overflow: 'hidden',
       }}
     >
-      {/* Sticky header row */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '2fr 1fr 1fr 1fr',
-          padding: '16px 28px',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div />
-        {(['Starter', 'Pro', 'Premium'] as const).map((label) => (
-          <div
-            key={label}
-            style={{
-              textAlign: 'center',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'var(--text-mute)',
-            }}
-          >
-            {label}
-          </div>
-        ))}
-      </div>
-
-      {/* Module rows — separated by dividers */}
-      {moduleTiers.map((mt, idx) => {
-        const mod = getModuleById(mt.moduleId)
+      {modulePrices.map((mp, idx) => {
+        const mod = getModuleById(mp.moduleId)
         return (
           <div
-            key={mt.moduleId}
+            key={mp.moduleId}
             style={{
               display: 'grid',
-              gridTemplateColumns: '2fr 1fr 1fr 1fr',
+              gridTemplateColumns: '1fr auto',
               alignItems: 'center',
               padding: '18px 28px',
               borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
@@ -286,7 +257,7 @@ function IndividualView() {
                     letterSpacing: '-0.01em',
                   }}
                 >
-                  {mt.moduleName}
+                  {mp.moduleName}
                 </span>
                 {mod && (
                   <span style={{ fontSize: 12, color: 'var(--text-mute)' }}>
@@ -296,12 +267,32 @@ function IndividualView() {
               </div>
             </div>
 
-            {/* Tier prices */}
-            {([mt.starter, mt.pro, mt.premium] as (number | null)[]).map((price, i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                {fmtPrice(price)}
-              </div>
-            ))}
+            {/* Price or Coming soon */}
+            <div style={{ textAlign: 'right', paddingLeft: 24 }}>
+              {mp.comingSoon ? (
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-mute)',
+                    padding: '4px 10px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--bg)',
+                    boxShadow: 'var(--neu-inset)',
+                  }}
+                >
+                  Coming soon
+                </span>
+              ) : (
+                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 600, fontSize: 15 }}>
+                  ₹{mp.price!.toLocaleString('en-IN')}
+                  <span style={{ color: 'var(--text-mute)', fontWeight: 400, fontSize: 13 }}>/mo</span>
+                </span>
+              )}
+            </div>
           </div>
         )
       })}
@@ -335,7 +326,7 @@ function BundlesView() {
             featured={b.featured}
             tierLabel="Bundle"
             bullets={[
-              `Modules: ${['bundle_starter', 'bundle_premium'].includes(b.id) ? 'All modules' : moduleBullets.join(', ')}`,
+              `Modules: ${b.id === 'bundle_premium' ? 'All modules' : moduleBullets.join(', ')}`,
               ...addonBullets.map((x) => `Includes ${x}`),
               '3-day free trial',
               'Cancel anytime',
@@ -346,15 +337,3 @@ function BundlesView() {
     </div>
   )
 }
-
-function fmtPrice(p: number | null): React.ReactNode {
-  if (p === null) {
-    return <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-mute)' }}>—</span>
-  }
-  return (
-    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 500 }}>
-      ₹{p.toLocaleString('en-IN')}<span style={{ color: 'var(--text-mute)', fontWeight: 400 }}>/mo</span>
-    </span>
-  )
-}
-

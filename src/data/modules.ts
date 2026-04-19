@@ -66,7 +66,7 @@ export const modules: Module[] = [
       { step: 2, title: 'Define your algo', body: 'Pick instrument, strikes, entry rules, SL and TP, lots, re-entry policy, and exit time.' },
       { step: 3, title: 'Monitor or automate', body: 'Run in PRACTIX for paper trading or LIVE to execute on your broker. Alerts, analytics, and logs are always on.' },
     ],
-    startingPrice: 999,
+    startingPrice: 1000,
   },
   {
     id: 'invex',
@@ -95,7 +95,7 @@ export const modules: Module[] = [
       { step: 2, title: 'Automate SIPs', body: 'Create a SIP rule per instrument. INVEX runs them on schedule and records every execution.' },
       { step: 3, title: 'Review and rebalance', body: 'Monthly or quarterly, review allocation and XIRR. Execute rebalancing trades through your broker.' },
     ],
-    startingPrice: 299,
+    startingPrice: 800,
   },
   {
     id: 'budgex',
@@ -124,7 +124,7 @@ export const modules: Module[] = [
       { step: 2, title: 'Review on web', body: 'The web dashboard shows your spend grouped by day, category, and merchant. Filter, search, export.' },
       { step: 3, title: 'Set budgets', body: 'Define a monthly budget per category. BUDGEX tracks progress and alerts before you overrun.' },
     ],
-    startingPrice: 199,
+    startingPrice: 500,
   },
   {
     id: 'finex',
@@ -153,7 +153,7 @@ export const modules: Module[] = [
       { step: 2, title: 'Score and brief', body: 'Every night, FINEX computes your LIFEX Score and assembles your morning briefing.' },
       { step: 3, title: 'Plan', body: 'Use GOALEX to sanity-check goal timelines. Stress-test against expense spikes or income loss.' },
     ],
-    startingPrice: 799,
+    startingPrice: 800,
   },
   {
     id: 'travex',
@@ -183,7 +183,7 @@ export const modules: Module[] = [
       { step: 2, title: 'Explore', body: 'Rotate the globe to see where you have been. Filter by mode, year, or cost.' },
       { step: 3, title: 'Plan next', body: 'Ask the travel buddy where you can afford to go next. It knows your budget.' },
     ],
-    startingPrice: 149,
+    startingPrice: 400,
   },
   {
     id: 'healthex',
