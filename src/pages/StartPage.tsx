@@ -223,17 +223,17 @@ function StepperSVG({
               <circle cx="80" cy={y} r="14" fill="#8b5cf6" stroke="rgba(139,92,246,0.4)" strokeWidth="2" filter="url(#nodeGlow)" />
             )}
             {isActive && (
-              <circle cx="80" cy={y} r="14" fill="#0a0a0f" stroke="#8b5cf6" strokeWidth="2.5" />
+              <circle cx="80" cy={y} r="14" style={{ fill: 'var(--bg)' }} stroke="#8b5cf6" strokeWidth="2.5" />
             )}
             {state === 'upcoming' && (
-              <circle cx="80" cy={y} r="14" style={{ fill: 'var(--bg-surface)' }} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+              <circle cx="80" cy={y} r="14" style={{ fill: 'var(--bg-surface)', stroke: 'var(--border-subtle)' }} strokeWidth="1" />
             )}
 
             {/* Number / checkmark */}
             <text
               x="80" y={y + 5}
               textAnchor="middle"
-              fill={isCompleted ? '#fff' : isActive ? '#fff' : 'rgba(229,231,235,0.35)'}
+              style={{ fill: isCompleted ? '#fff' : isActive ? 'var(--accent)' : 'var(--text-mute)' }}
               fontSize="12"
               fontWeight={isActive ? '600' : '400'}
               fontFamily="JetBrains Mono, monospace"
@@ -247,7 +247,7 @@ function StepperSVG({
               fontSize="11"
               fontFamily="JetBrains Mono, monospace"
               fontWeight={isActive ? '600' : '400'}
-              fill={isCompleted ? '#8b5cf6' : isActive ? '#e5e7eb' : 'rgba(229,231,235,0.35)'}
+              style={{ fill: isCompleted ? 'var(--accent)' : isActive ? 'var(--text)' : 'var(--text-mute)' }}
             >
               {label}
             </text>
@@ -258,7 +258,7 @@ function StepperSVG({
                 fontSize="9"
                 fontFamily="JetBrains Mono, monospace"
                 fontWeight="400"
-                fill="rgba(139,92,246,0.7)"
+                style={{ fill: 'var(--accent)', opacity: 0.7 }}
                 letterSpacing="0.08em"
               >
                 {i + 1} of 6
