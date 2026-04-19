@@ -8,6 +8,13 @@ import { ModuleIcon } from './icons/ModuleIcons'
 
 export default function PricingSection() {
   const [view, setView] = useState<PricingView>('individual')
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([])
+
+  const toggleAddon = (addonId: string) => {
+    setSelectedAddons((prev) =>
+      prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]
+    )
+  }
 
   return (
     <section
@@ -85,7 +92,7 @@ export default function PricingSection() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.3 }}
             >
-              <IndividualView />
+              <IndividualView selectedAddons={selectedAddons} onToggleAddon={toggleAddon} />
             </motion.div>
           ) : (
             <motion.div
@@ -99,24 +106,153 @@ export default function PricingSection() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Add-ons — always visible, selectable */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5 }}
+          style={{
+            marginTop: 'var(--space-8)',
+            borderRadius: 'var(--radius-lg)',
+            background: 'var(--bg)',
+            boxShadow: 'var(--neu-inset)',
+            display: 'grid',
+            gridTemplateColumns: `max-content repeat(${addons.length}, 1fr)`,
+          }}
+        >
+          {/* "Add-ons" side label */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '28px 24px',
+              borderRight: '1px solid var(--border-subtle)',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'var(--text-mute)',
+                writingMode: 'vertical-rl',
+                transform: 'rotate(180deg)',
+              }}
+            >
+              Add-ons
+            </span>
+          </div>
+
+          {addons.map((a, idx) => {
+            const isIndividual = view === 'individual'
+            const isActive = isIndividual && selectedAddons.includes(a.id)
+            const isDiscount = a.priceDelta < 0
+            const Tag = isIndividual ? 'button' : 'div'
+            return (
+              <Tag
+                key={a.id}
+                {...(isIndividual ? { type: 'button' as const, onClick: () => toggleAddon(a.id) } : {})}
+                style={{
+                  all: 'unset',
+                  cursor: isIndividual ? 'pointer' : 'default',
+                  padding: '28px 32px',
+                  borderRight: idx < addons.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 10,
+                  background: isActive ? 'rgba(255,107,0,0.06)' : 'transparent',
+                  boxShadow: isActive ? 'var(--neu-inset)' : 'none',
+                  transition: 'background 160ms ease, box-shadow 160ms ease',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: isActive ? 'var(--accent)' : 'var(--text-mute)',
+                    transition: 'color 160ms ease',
+                  }}
+                >
+                  {a.name}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 28,
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
+                      color: isDiscount
+                        ? 'var(--status-live)'
+                        : isActive
+                        ? 'var(--accent)'
+                        : 'var(--text)',
+                      transition: 'color 160ms ease',
+                    }}
+                  >
+                    {isDiscount ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>
+                    /mo
+                  </span>
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    lineHeight: 1.55,
+                    color: 'var(--text-mute)',
+                    textAlign: 'center',
+                    maxWidth: 200,
+                  }}
+                >
+                  {a.description.split('.')[0]}.
+                </p>
+                {isIndividual && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: '0.1em',
+                      color: isActive ? 'var(--accent)' : 'transparent',
+                      transition: 'color 160ms ease',
+                      userSelect: 'none',
+                    }}
+                  >
+                    ✓ SELECTED
+                  </span>
+                )}
+              </Tag>
+            )
+          })}
+        </motion.div>
       </div>
     </section>
   )
 }
 
-function IndividualView() {
+function IndividualView({
+  selectedAddons,
+  onToggleAddon,
+}: {
+  selectedAddons: string[]
+  onToggleAddon: (id: string) => void
+}) {
   const [selectedModules, setSelectedModules] = useState<string[]>([])
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([])
 
   const toggleModule = (moduleId: string) => {
     setSelectedModules((prev) =>
       prev.includes(moduleId) ? prev.filter((id) => id !== moduleId) : [...prev, moduleId]
-    )
-  }
-
-  const toggleAddon = (addonId: string) => {
-    setSelectedAddons((prev) =>
-      prev.includes(addonId) ? prev.filter((id) => id !== addonId) : [...prev, addonId]
     )
   }
 
@@ -277,7 +413,7 @@ function IndividualView() {
             selectedModules={selectedModules}
             selectedAddons={selectedAddons}
             onRemoveModule={toggleModule}
-            onToggleAddon={toggleAddon}
+            onToggleAddon={onToggleAddon}
             total={total}
           />
         </div>
