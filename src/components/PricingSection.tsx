@@ -185,6 +185,24 @@ export default function PricingSection() {
   )
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const hexToRgb = (hex: string) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `${r}, ${g}, ${b}`
+}
+
+const CARD_Y_OFFSETS: Record<string, number> = {
+  staax: 20, invex: 0, budgex: 15, finex: 30, travex: 10, healthex: 35, histex: 40,
+}
+
+const STAAX_PLANS = [
+  { id: 'lite' as const, label: 'STAAX Lite', price: 1500, desc: 'Up to 10 algos' },
+  { id: 'pro'  as const, label: 'STAAX Pro',  price: 4000, desc: 'Up to 30 algos' },
+]
+
 // ─── IndividualView ────────────────────────────────────────────────────────────
 
 function IndividualView({
@@ -196,10 +214,12 @@ function IndividualView({
 }) {
   const [selectedModules, setSelectedModules] = useState<string[]>([])
   const [pendingModules, setPendingModules] = useState<string[]>([])
+  const [hoveredModule, setHoveredModule] = useState<string | null>(null)
+  const [staaxPlan, setStaaxPlan] = useState<'lite' | 'pro'>('lite')
 
-  const moduleRowRefs = useRef<Record<string, HTMLDivElement | null>>({})
-  const cartRef       = useRef<HTMLDivElement | null>(null)
-  const bounceRef     = useRef<HTMLDivElement | null>(null)
+  const cardContainerRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const cartRef            = useRef<HTMLDivElement | null>(null)
+  const bounceRef          = useRef<HTMLDivElement | null>(null)
 
   // Cart squash-stretch bounce on item landing
   const bounceCart = () => {
@@ -235,7 +255,7 @@ function IndividualView({
 
   // Arc fly animation using Web Animations API
   const flyToCart = (moduleId: string) => {
-    const sourceEl = moduleRowRefs.current[moduleId]
+    const sourceEl = cardContainerRefs.current[moduleId]
     if (!sourceEl || !cartRef.current) {
       // Fallback: no animation, just add to cart
       setPendingModules((prev) => prev.filter((id) => id !== moduleId))
@@ -335,70 +355,56 @@ function IndividualView({
         className="individual-grid"
         style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}
       >
-        {/* LEFT — clickable module rows */}
-        <div style={{ borderRadius: '24px', background: 'var(--bg)', boxShadow: 'var(--neu-raised)', overflow: 'hidden' }}>
-          {modulePrices.map((mp, idx) => {
-            const mod        = getModuleById(mp.moduleId)
-            const isSelected = selectedModules.includes(mp.moduleId) || pendingModules.includes(mp.moduleId)
-            const clickable  = !mp.comingSoon
+        {/* LEFT — NFT Mario card deck */}
+        <div
+          className="card-deck-wrapper"
+          onMouseLeave={() => setHoveredModule(null)}
+          style={{ position: 'relative' }}
+        >
+          {/* Card row */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, paddingTop: 50, paddingBottom: 4 }}>
+            {modulePrices.map((mp) => {
+              const mod        = getModuleById(mp.moduleId)
+              const isHovered  = hoveredModule === mp.moduleId
+              const isReceded  = hoveredModule !== null && hoveredModule !== mp.moduleId && !mp.comingSoon
+              const isSelected = selectedModules.includes(mp.moduleId) || pendingModules.includes(mp.moduleId)
+              const yOffset    = CARD_Y_OFFSETS[mp.moduleId] ?? 20
 
-            return (
-              <div
-                key={mp.moduleId}
-                ref={(el: HTMLDivElement | null) => { moduleRowRefs.current[mp.moduleId] = el }}
-                onClick={clickable ? () => toggleModule(mp.moduleId) : undefined}
-                style={{
-                  display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center',
-                  padding: '18px 28px',
-                  borderTop: idx === 0 ? 'none' : '1px solid var(--border-subtle)',
-                  borderLeft: isSelected ? `3px solid ${mod?.color ?? 'var(--accent)'}` : '3px solid transparent',
-                  background: isSelected ? `${mod?.color ?? 'var(--accent)'}14` : 'transparent',
-                  boxShadow: isSelected ? 'var(--neu-inset)' : 'none',
-                  cursor: clickable ? 'pointer' : 'default',
-                  opacity: mp.comingSoon ? 0.5 : 1,
-                  transition: 'background 160ms ease, border-color 160ms ease, box-shadow 160ms ease',
-                }}
-              >
-                {/* Module identity */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ flexShrink: 0, width: 40, height: 40, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', boxShadow: 'var(--neu-inset)', color: mod?.color ?? 'var(--text-mute)' }}>
-                    {mod && <ModuleIcon iconKey={mod.iconKey} size={20} />}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>
-                      {mp.moduleName}
-                    </span>
-                    {mod && (
-                      <span style={{ fontSize: 12, color: 'var(--text-mute)' }}>({mod.tagline})</span>
-                    )}
-                  </div>
+              return (
+                <div
+                  key={mp.moduleId}
+                  ref={(el: HTMLDivElement | null) => { cardContainerRefs.current[mp.moduleId] = el }}
+                  onMouseEnter={!mp.comingSoon ? () => setHoveredModule(mp.moduleId) : undefined}
+                  style={{ flexShrink: 0 }}
+                >
+                  <ModuleCard
+                    mp={mp}
+                    mod={mod}
+                    yOffset={yOffset}
+                    isHovered={isHovered}
+                    isReceded={isReceded}
+                    isSelected={isSelected}
+                    onClick={!mp.comingSoon ? () => toggleModule(mp.moduleId) : undefined}
+                  />
                 </div>
+              )
+            })}
+          </div>
 
-                {/* Price / badge / checkmark */}
-                <div style={{ textAlign: 'right', paddingLeft: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {mp.comingSoon ? (
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-mute)', padding: '4px 10px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)', boxShadow: 'var(--neu-inset)' }}>
-                      Coming soon
-                    </span>
-                  ) : (
-                    <>
-                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontWeight: 600, fontSize: 15 }}>
-                        ₹{mp.price!.toLocaleString('en-IN')}
-                        <span style={{ color: 'var(--text-mute)', fontWeight: 400, fontSize: 13 }}>/mo</span>
-                      </span>
-                      <span style={{ width: 20, textAlign: 'center', fontWeight: 700, fontSize: 16, color: isSelected ? (mod?.color ?? 'var(--accent)') : 'transparent', transition: 'color 160ms ease', userSelect: 'none' }}>
-                        ✓
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          {/* Expansion panel */}
+          <ExpansionPanel
+            hoveredModule={hoveredModule}
+            cardContainerRefs={cardContainerRefs}
+            selectedModules={selectedModules}
+            pendingModules={pendingModules}
+            staaxPlan={staaxPlan}
+            setStaaxPlan={setStaaxPlan}
+            onToggleModule={toggleModule}
+          />
         </div>
 
         {/* RIGHT — shopping cart */}
-        <div style={{ position: 'sticky', top: 100 }}>
+        <div className="cart-panel" style={{ position: 'sticky', top: 100 }}>
           <ShoppingCart
             selectedModules={selectedModules}
             selectedAddons={selectedAddons}
@@ -411,9 +417,81 @@ function IndividualView({
         </div>
       </div>
 
+      {/* Mobile — horizontal chip row */}
+      <div className="mobile-module-select">
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '4px 0', scrollbarWidth: 'none' }}>
+          {modulePrices.map((mp) => {
+            const mod        = getModuleById(mp.moduleId)
+            const isSelected = selectedModules.includes(mp.moduleId) || pendingModules.includes(mp.moduleId)
+            return (
+              <button
+                key={mp.moduleId}
+                type="button"
+                onClick={!mp.comingSoon ? () => toggleModule(mp.moduleId) : undefined}
+                style={{
+                  all: 'unset', cursor: mp.comingSoon ? 'default' : 'pointer', boxSizing: 'border-box',
+                  padding: '7px 14px', borderRadius: 100, flexShrink: 0,
+                  background: isSelected ? (mod?.color ?? 'var(--accent)') : 'var(--bg)',
+                  boxShadow: isSelected ? 'none' : 'var(--neu-raised-sm)',
+                  color: isSelected ? '#fff' : 'var(--text-dim)',
+                  fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600,
+                  opacity: mp.comingSoon ? 0.4 : 1,
+                  transition: 'background 160ms ease, color 160ms ease',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {mp.moduleName}{mp.comingSoon ? ' (soon)' : ''}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Mobile — sticky bottom bar */}
+      {selectedModules.length > 0 && (
+        <div className="mobile-sticky-bar">
+          <div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', marginBottom: 2 }}>
+              {selectedModules.length} module{selectedModules.length > 1 ? 's' : ''} selected
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+              ₹{Math.max(0, total).toLocaleString('en-IN')}/mo
+            </div>
+          </div>
+          <button
+            type="button"
+            style={{
+              all: 'unset', cursor: 'pointer', padding: '10px 22px', borderRadius: 100,
+              background: 'var(--accent)', color: '#fff',
+              fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600,
+            }}
+          >
+            Subscribe →
+          </button>
+        </div>
+      )}
+
       <style>{`
+        .mobile-module-select { display: none; }
+        .mobile-sticky-bar    { display: none; }
+
         @media (max-width: 768px) {
-          .individual-grid { grid-template-columns: 1fr !important; }
+          .individual-grid      { grid-template-columns: 1fr !important; }
+          .card-deck-wrapper    { display: none !important; }
+          .cart-panel           { display: none !important; }
+          .mobile-module-select { display: block; }
+          .mobile-sticky-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--bg);
+            padding: 12px 20px;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+            z-index: 100;
+            border-top: 1px solid var(--border-subtle);
+          }
         }
         @keyframes barIn {
           from { transform: translateY(-14px); opacity: 0; }
@@ -421,6 +499,224 @@ function IndividualView({
         }
       `}</style>
     </>
+  )
+}
+
+// ─── ModuleCard ────────────────────────────────────────────────────────────────
+
+interface ModuleCardProps {
+  mp:         { moduleId: string; moduleName: string; price: number | null; comingSoon?: boolean }
+  mod:        { name: string; color: string; iconKey: import('@/data/modules').IconKey; tagline: string } | undefined
+  yOffset:    number
+  isHovered:  boolean
+  isReceded:  boolean
+  isSelected: boolean
+  onClick:    (() => void) | undefined
+}
+
+function ModuleCard({ mp, mod, yOffset, isHovered, isReceded, isSelected, onClick }: ModuleCardProps) {
+  const isComingSoon = !!mp.comingSoon
+  const color = mod?.color ?? '#888'
+  const rgb   = hexToRgb(color)
+
+  let transform = `translateY(${yOffset}px)`
+  if (isHovered)    transform = `translateY(${yOffset - 18}px) scale(1.08)`
+  if (isReceded)    transform = `translateY(${yOffset + 4}px) scale(0.92)`
+  if (isComingSoon) transform = `translateY(${yOffset}px) scale(0.88)`
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        width: 110, height: 150, flexShrink: 0,
+        borderRadius: 16,
+        background: `linear-gradient(135deg, rgba(${rgb},0.12) 0%, rgba(${rgb},0.04) 100%)`,
+        border: `1px solid rgba(${rgb},${isHovered ? 0.6 : 0.2})`,
+        boxShadow: isHovered
+          ? `0 20px 40px rgba(0,0,0,0.5), 0 0 28px rgba(${rgb},0.3)`
+          : `0 2px 0 rgba(0,0,0,0.28), 0 8px 24px rgba(0,0,0,0.4)`,
+        transform,
+        filter: isReceded ? 'blur(1.5px)' : isComingSoon ? 'blur(2px)' : 'none',
+        opacity: isComingSoon ? 0.38 : isReceded ? 0.6 : 1,
+        cursor: isComingSoon ? 'default' : 'pointer',
+        pointerEvents: isComingSoon ? 'none' : 'auto',
+        transition: 'all 300ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', gap: 8,
+        padding: '0 10px',
+        userSelect: 'none',
+        zIndex: isHovered ? 10 : 1,
+      }}
+    >
+      {/* Top accent bar */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: color, borderRadius: '16px 16px 0 0', opacity: isComingSoon ? 0.4 : 0.9 }} />
+
+      {/* Module icon */}
+      <div style={{ color, opacity: isComingSoon ? 0.5 : 1 }}>
+        {mod && <ModuleIcon iconKey={mod.iconKey} size={32} />}
+      </div>
+
+      {/* Module name */}
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--text)', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 1.2 }}>
+        {mp.moduleName}
+      </span>
+
+      {/* Price or Soon badge */}
+      {isComingSoon ? (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-mute)', padding: '3px 8px', borderRadius: 100, background: 'rgba(0,0,0,0.1)' }}>
+          Soon
+        </span>
+      ) : (
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color, textAlign: 'center' }}>
+          {mp.moduleId === 'staax' ? '₹1,500+' : `₹${mp.price?.toLocaleString('en-IN')}`}
+        </span>
+      )}
+
+      {/* Selected indicator */}
+      {isSelected && (
+        <div style={{ position: 'absolute', bottom: 8, right: 8, width: 16, height: 16, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: '#fff', fontSize: 9, fontWeight: 700, lineHeight: 1 }}>✓</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── ExpansionPanel ────────────────────────────────────────────────────────────
+
+interface ExpansionPanelProps {
+  hoveredModule:      string | null
+  cardContainerRefs:  { current: Record<string, HTMLDivElement | null> }
+  selectedModules:    string[]
+  pendingModules:     string[]
+  staaxPlan:          'lite' | 'pro'
+  setStaaxPlan:       (p: 'lite' | 'pro') => void
+  onToggleModule:     (id: string) => void
+}
+
+function ExpansionPanel({
+  hoveredModule,
+  cardContainerRefs,
+  selectedModules,
+  pendingModules,
+  staaxPlan,
+  setStaaxPlan,
+  onToggleModule,
+}: ExpansionPanelProps) {
+  const mod = hoveredModule ? getModuleById(hoveredModule) : undefined
+  const mp  = hoveredModule ? modulePrices.find((m) => m.moduleId === hoveredModule) : undefined
+  const isOpen = !!hoveredModule && !mp?.comingSoon
+  const isSelected = hoveredModule
+    ? selectedModules.includes(hoveredModule) || pendingModules.includes(hoveredModule)
+    : false
+
+  // Slide triangle to align with hovered card center
+  const triangleLeft = hoveredModule
+    ? (cardContainerRefs.current[hoveredModule]?.offsetLeft ?? 0) + 47
+    : 60
+
+  return (
+    <div
+      style={{
+        maxHeight: isOpen ? '240px' : '0',
+        opacity: isOpen ? 1 : 0,
+        overflow: 'hidden',
+        transition: 'max-height 280ms ease, opacity 200ms ease',
+        marginTop: 12,
+      }}
+    >
+      {mod && mp && (
+        <div style={{ position: 'relative', background: 'var(--bg)', boxShadow: 'var(--neu-raised)', borderRadius: 16, padding: '20px 24px' }}>
+          {/* Triangle pointer */}
+          <div style={{
+            position: 'absolute', top: -8,
+            left: triangleLeft,
+            width: 0, height: 0,
+            borderLeft: '8px solid transparent',
+            borderRight: '8px solid transparent',
+            borderBottom: '8px solid var(--bg)',
+            transition: 'left 200ms ease',
+          }} />
+
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            {/* Left: module info */}
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: mod.color, flexShrink: 0, display: 'inline-block' }} />
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                  {mod.name}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-mute)', letterSpacing: '0.06em' }}>
+                  {mod.tagline}
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--text-dim)', maxWidth: 400 }}>
+                {mod.description.split('.')[0]}.
+              </p>
+            </div>
+
+            {/* Right: price / STAAX plan selector + CTA */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-end' }}>
+              {mod.id === 'staax' ? (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {STAAX_PLANS.map((plan) => (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => setStaaxPlan(plan.id)}
+                      style={{
+                        all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                        padding: '8px 12px', borderRadius: 10,
+                        background: staaxPlan === plan.id ? mod.color : 'var(--bg)',
+                        boxShadow: staaxPlan === plan.id ? 'none' : 'var(--neu-raised-sm)',
+                        display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start',
+                        transition: 'background 200ms ease, box-shadow 200ms ease',
+                      }}
+                    >
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: staaxPlan === plan.id ? 'rgba(255,255,255,0.8)' : 'var(--text-mute)' }}>
+                        {plan.label}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: staaxPlan === plan.id ? '#fff' : 'var(--text)' }}>
+                        ₹{plan.price.toLocaleString('en-IN')}/mo
+                      </span>
+                      <span style={{ fontSize: 10, color: staaxPlan === plan.id ? 'rgba(255,255,255,0.7)' : 'var(--text-mute)' }}>
+                        {plan.desc}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : mp.price ? (
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 700, color: mod.color, letterSpacing: '-0.02em' }}>
+                    ₹{mp.price.toLocaleString('en-IN')}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>/mo</span>
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => onToggleModule(mod.id)}
+                style={{
+                  all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                  padding: '9px 18px', borderRadius: 100, whiteSpace: 'nowrap',
+                  background: isSelected ? 'var(--bg)' : mod.color,
+                  boxShadow: isSelected ? 'var(--neu-inset)' : `0 4px 14px rgba(${hexToRgb(mod.color)},0.4)`,
+                  color: isSelected ? 'var(--text-mute)' : '#fff',
+                  fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600,
+                  letterSpacing: '-0.01em',
+                  transition: 'all 200ms ease',
+                }}
+              >
+                {isSelected ? 'Remove from plan' : 'Add to plan →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
