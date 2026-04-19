@@ -111,7 +111,7 @@ export default function PricingSection() {
           )}
         </AnimatePresence>
 
-        {/* Add-ons — always visible, selectable */}
+        {/* Add-ons — always visible */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -122,13 +122,14 @@ export default function PricingSection() {
             borderRadius: 'var(--radius-lg)',
             background: 'var(--bg)',
             boxShadow: 'var(--neu-inset)',
-            display: 'grid',
-            gridTemplateColumns: `max-content repeat(${addons.length}, 1fr)`,
+            display: 'flex',
+            flexDirection: 'row',
           }}
         >
-          {/* "Add-ons" side label */}
+          {/* Static "Add-ons" side label — never re-renders on view change */}
           <div
             style={{
+              flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -152,80 +153,90 @@ export default function PricingSection() {
             </span>
           </div>
 
-          {addons.map((a, idx) => {
-            const isIndividual = view === 'individual'
-            const aiActive = selectedAddons.includes('ai')
-            const isByok = a.id === 'byok'
-            const isDisabled = isIndividual && isByok && aiActive
-            const isActive = isIndividual && selectedAddons.includes(a.id)
-            const isDiscount = a.priceDelta < 0
-            const Tag = isIndividual && !isDisabled ? 'button' : 'div'
-            return (
-              <Tag
-                key={a.id}
-                {...(isIndividual && !isDisabled ? { type: 'button' as const, onClick: () => toggleAddon(a.id) } : {})}
-                style={{
-                  all: 'unset',
-                  boxSizing: 'border-box',
-                  cursor: isIndividual && !isDisabled ? 'pointer' : 'default',
-                  padding: isIndividual ? '20px 24px' : '28px 32px',
-                  margin: isIndividual ? '8px' : 0,
-                  marginRight: isIndividual && idx < addons.length - 1 ? '0' : (isIndividual ? '8px' : 0),
-                  borderRight: !isIndividual && idx < addons.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                  borderRadius: isIndividual ? 'var(--radius-md)' : 0,
-                  background: isIndividual ? 'var(--bg)' : 'transparent',
-                  boxShadow: !isIndividual ? 'none' : isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 10,
-                  opacity: isDisabled ? 0.35 : 1,
-                  transition: 'box-shadow 160ms ease, opacity 160ms ease',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    color: 'var(--text-mute)',
-                  }}
-                >
-                  {a.name}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                  <span
+          {/* Cells cross-fade between individual (cards) and bundles (flat) */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={view}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              style={{ flex: 1, display: 'flex' }}
+            >
+              {addons.map((a, idx) => {
+                const isIndividual = view === 'individual'
+                const aiActive = selectedAddons.includes('ai')
+                const isByok = a.id === 'byok'
+                const isDisabled = isIndividual && isByok && aiActive
+                const isActive = isIndividual && selectedAddons.includes(a.id)
+                const isDiscount = a.priceDelta < 0
+
+                const cellContent = (
+                  <>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'var(--text-mute)' }}>
+                      {a.name}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', color: isDiscount ? 'var(--status-live)' : 'var(--text)' }}>
+                        {isDiscount ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>/mo</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--text-mute)', textAlign: 'center' as const, maxWidth: 200 }}>
+                      {a.description.split('.')[0]}.
+                    </p>
+                  </>
+                )
+
+                if (isIndividual) {
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={!isDisabled ? () => toggleAddon(a.id) : undefined}
+                      style={{
+                        all: 'unset',
+                        boxSizing: 'border-box',
+                        flex: 1,
+                        cursor: !isDisabled ? 'pointer' : 'default',
+                        padding: '20px 24px',
+                        margin: '8px',
+                        marginRight: idx < addons.length - 1 ? 0 : '8px',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--bg)',
+                        boxShadow: isActive ? 'var(--neu-inset)' : 'var(--neu-raised-sm)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 10,
+                        opacity: isDisabled ? 0.35 : 1,
+                        transition: 'box-shadow 160ms ease, opacity 160ms ease',
+                      }}
+                    >
+                      {cellContent}
+                    </button>
+                  )
+                }
+
+                return (
+                  <div
+                    key={a.id}
                     style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 28,
-                      fontWeight: 700,
-                      letterSpacing: '-0.02em',
-                      color: isDiscount ? 'var(--status-live)' : 'var(--text)',
+                      flex: 1,
+                      padding: '28px 32px',
+                      borderRight: idx < addons.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 10,
                     }}
                   >
-                    {isDiscount ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>
-                    /mo
-                  </span>
-                </div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 12,
-                    lineHeight: 1.55,
-                    color: 'var(--text-mute)',
-                    textAlign: 'center',
-                    maxWidth: 200,
-                  }}
-                >
-                  {a.description.split('.')[0]}.
-                </p>
-              </Tag>
-            )
-          })}
+                    {cellContent}
+                  </div>
+                )
+              })}
+            </motion.div>
+          </AnimatePresence>
         </motion.div>
       </div>
     </section>
