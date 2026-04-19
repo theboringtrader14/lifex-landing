@@ -594,9 +594,10 @@ interface StepSectionProps {
   state: StepState
   goToStep: (idx: number) => void
   children: React.ReactNode
+  noCard?: boolean
 }
 
-function StepSection({ stepNum, title, state, goToStep, children }: StepSectionProps) {
+function StepSection({ stepNum, title, state, goToStep, children, noCard }: StepSectionProps) {
   const isActive    = state === 'active'
   const isCompleted = state === 'completed'
 
@@ -605,7 +606,10 @@ function StepSection({ stepNum, title, state, goToStep, children }: StepSectionP
       id={`step-${stepNum}`}
       style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 0' }}
     >
-      <div style={{
+      <div style={noCard ? {
+        opacity: state === 'upcoming' ? 0.5 : 1,
+        transition: 'opacity 0.3s',
+      } : {
         background: 'var(--bg-surface)',
         borderRadius: 20,
         boxShadow: isActive ? 'var(--neu-raised)' : 'var(--neu-raised-sm)',
@@ -866,7 +870,7 @@ export default function StartPage() {
 
       {/* ── Right column ── */}
       <main className="start-main" style={{ marginLeft: 220, padding: '80px 80px 200px' }}>
-        <StepSection stepNum={1} title="Choose Plan" state={stepStates[0]} goToStep={goToStep}>
+        <StepSection stepNum={1} title="Choose Plan" state={stepStates[0]} goToStep={goToStep} noCard>
           <Step1 onContinue={goToNextStep} />
         </StepSection>
 
