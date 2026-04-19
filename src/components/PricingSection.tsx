@@ -137,7 +137,7 @@ export default function PricingSection() {
                 transform: 'rotate(180deg)',
               }}
             >
-              Add-ons
+              Add-ons<sup style={{ color: 'var(--accent)', fontSize: 8, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
             </span>
           </div>
 
@@ -179,7 +179,7 @@ export default function PricingSection() {
                     color: a.priceDelta < 0 ? 'var(--status-live)' : 'var(--text)',
                   }}
                 >
-                  {a.priceDelta < 0 ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}<sup style={{ fontSize: 8, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
+                  {a.priceDelta < 0 ? '−' : '+'}₹{Math.abs(a.priceDelta).toLocaleString('en-IN')}
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-mute)' }}>
                   /mo
@@ -212,7 +212,7 @@ export default function PricingSection() {
             textAlign: 'right',
           }}
         >
-          * Monthly billing via Razorpay. Cancel anytime.
+          * Module prices are exclusive of add-ons listed below.
         </p>
       </div>
     </section>
@@ -320,7 +320,7 @@ function IndividualView() {
                     >
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                         ₹{plan.price.toLocaleString('en-IN')}
-                        <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
+                        <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0, color: 'var(--accent)' }}>*</sup>
                       </span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-mute)', fontWeight: 400 }}>
                         /mo ({plan.desc})
@@ -342,7 +342,7 @@ function IndividualView() {
                 >
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                     ₹{mp.price!.toLocaleString('en-IN')}
-                    <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0 }}>*</sup>
+                    <sup style={{ fontSize: 9, verticalAlign: 'super', lineHeight: 0, color: 'var(--accent)' }}>*</sup>
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 400, color: 'var(--text-mute)' }}>
                     /mo
