@@ -87,29 +87,33 @@ export default function PricingSection() {
           </div>
         </motion.div>
 
-        <AnimatePresence mode="wait">
-          {view === 'individual' ? (
-            <motion.div
-              key="individual"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.3 }}
-            >
-              <IndividualView selectedAddons={selectedAddons} onToggleAddon={toggleAddon} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="bundles"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.3 }}
-            >
-              <BundlesView />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Both views stay in DOM — cross-fade via CSS, no height collapse */}
+        <div style={{ position: 'relative' }}>
+          {(['individual', 'bundles'] as const).map((v) => {
+            const isActive = view === v
+            return (
+              <div
+                key={v}
+                style={{
+                  position: isActive ? 'relative' : 'absolute',
+                  top: isActive ? undefined : 0,
+                  left: isActive ? undefined : 0,
+                  right: isActive ? undefined : 0,
+                  opacity: isActive ? 1 : 0,
+                  transform: isActive ? 'translateY(0)' : 'translateY(10px)',
+                  pointerEvents: isActive ? 'auto' : 'none',
+                  visibility: isActive ? 'visible' : 'hidden',
+                  transition: 'opacity 280ms ease, transform 280ms ease',
+                }}
+              >
+                {v === 'individual'
+                  ? <IndividualView selectedAddons={selectedAddons} onToggleAddon={toggleAddon} />
+                  : <BundlesView />
+                }
+              </div>
+            )
+          })}
+        </div>
 
         {/* Add-ons — always visible */}
         <motion.div
@@ -462,9 +466,17 @@ function CartPanel({
         minWidth: 240,
       }}
     >
+      <AnimatePresence mode="wait" initial={false}>
       {isEmpty ? (
         /* ── State A: empty ── */
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 0' }}>
+        <motion.div
+          key="cart-empty"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '24px 0' }}
+        >
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
             stroke="var(--text-mute)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -477,10 +489,17 @@ function CartPanel({
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-mute)', textAlign: 'center' }}>
             Click any module to add it
           </span>
-        </div>
+        </motion.div>
       ) : (
         /* ── State B: stacked card deck ── */
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <motion.div
+          key="cart-filled"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          style={{ display: 'flex', flexDirection: 'column' }}
+        >
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em', marginBottom: 14 }}>
             Your Plan
           </span>
@@ -609,8 +628,9 @@ function CartPanel({
               Subscribe →
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }
