@@ -243,7 +243,7 @@ function StepperSVG({
 
             {/* Label */}
             <text
-              x="102" y={y + 5}
+              x="102" y={isActive ? y : y + 5}
               fontSize="11"
               fontFamily="JetBrains Mono, monospace"
               fontWeight={isActive ? '600' : '400'}
@@ -251,6 +251,19 @@ function StepperSVG({
             >
               {label}
             </text>
+            {/* "X of 6" sub-label — active node only */}
+            {isActive && (
+              <text
+                x="102" y={y + 15}
+                fontSize="9"
+                fontFamily="JetBrains Mono, monospace"
+                fontWeight="400"
+                fill="rgba(139,92,246,0.7)"
+                letterSpacing="0.08em"
+              >
+                {i + 1} of 6
+              </text>
+            )}
           </g>
         )
       })}
@@ -618,41 +631,11 @@ function StepSection({ stepNum, title, state, goToStep, children, noCard }: Step
         opacity: state === 'upcoming' ? 0.5 : 1,
         transition: 'box-shadow 0.3s, opacity 0.3s',
       }}>
-        {/* Step badge row */}
+        {/* Title */}
         <div
           onClick={() => isCompleted ? goToStep(stepNum - 1) : undefined}
           style={{ cursor: isCompleted ? 'pointer' : 'default', marginBottom: 12 }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            {/* Badge circle */}
-            <div style={{
-              width: 24, height: 24, borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-mono)',
-              background: isCompleted
-                ? 'rgba(139,92,246,0.6)'
-                : isActive
-                ? 'var(--accent)'
-                : 'rgba(255,255,255,0.06)',
-              color: (isCompleted || isActive) ? '#fff' : 'var(--text-mute)',
-              border: (isCompleted || isActive) ? 'none' : '1px solid rgba(255,255,255,0.08)',
-              boxShadow: isActive ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
-              transition: 'all 0.3s',
-              flexShrink: 0,
-            }}>
-              {isCompleted ? '✓' : stepNum}
-            </div>
-            <span style={{
-              fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.1em',
-              textTransform: 'uppercase' as const,
-              color: isActive ? 'var(--accent)' : 'var(--text-mute)',
-              transition: 'color 0.3s',
-            }}>
-              Step {stepNum} of 6
-            </span>
-          </div>
-
-          {/* Title */}
           <h2 style={{
             margin: 0,
             fontFamily: 'var(--font-display)',
