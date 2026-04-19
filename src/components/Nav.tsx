@@ -28,7 +28,7 @@ export function scrollToModules(e: React.MouseEvent<HTMLAnchorElement>) {
   scrollToSection('modules', e)
 }
 
-export default function Nav() {
+export default function Nav({ minimal = false }: { minimal?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -89,14 +89,14 @@ export default function Nav() {
         </span>
       </a>
 
-      {/* Center links (desktop) — absolutely centred so logo/actions widths don't affect it */}
+      {/* Center links (desktop) — hidden in minimal mode */}
       <ul
         className="nav-center"
         style={{
+          display: minimal ? 'none' : 'flex',
           position: 'absolute',
           left: '50%',
           transform: 'translateX(-50%)',
-          display: 'flex',
           gap: 32,
           fontSize: 14,
           color: 'var(--text-dim)',
@@ -130,9 +130,9 @@ export default function Nav() {
         <Link
           to="/start"
           style={{
+            display: minimal ? 'none' : 'inline-flex',
             height: 34,
             padding: '10px 20px',
-            display: 'inline-flex',
             alignItems: 'center',
             fontSize: 13,
             fontWeight: 500,

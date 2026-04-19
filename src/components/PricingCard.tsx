@@ -11,6 +11,8 @@ interface Props {
   featured?: boolean
   tierLabel?: string
   disabled?: boolean
+  selected?: boolean
+  hideCta?: boolean
 }
 
 export default function PricingCard({
@@ -23,6 +25,8 @@ export default function PricingCard({
   featured = false,
   tierLabel,
   disabled = false,
+  selected = false,
+  hideCta = false,
 }: Props) {
   return (
     <div
@@ -34,10 +38,12 @@ export default function PricingCard({
         padding: '36px 28px',
         borderRadius: '24px',
         overflow: 'hidden',
-        background: 'var(--bg)',
-        boxShadow: 'var(--neu-raised)',
+        height: '100%',
+        boxSizing: 'border-box',
+        background: selected ? 'rgba(139,92,246,0.07)' : 'var(--bg)',
+        boxShadow: selected ? 'var(--neu-inset)' : 'var(--neu-raised)',
         opacity: disabled ? 0.55 : 1,
-        transition: 'box-shadow 200ms ease, transform 200ms ease',
+        transition: 'box-shadow 200ms ease, transform 200ms ease, background 200ms ease',
       }}
     >
       {featured && (
@@ -159,7 +165,7 @@ export default function PricingCard({
         ))}
       </ul>
 
-      {(!disabled && price !== null) ? (
+      {!hideCta && ((!disabled && price !== null) ? (
         <Link
           to="/start"
           style={{
@@ -212,7 +218,7 @@ export default function PricingCard({
         >
           {price === null ? 'Contact sales' : cta}
         </span>
-      )}
+      ))}
     </div>
   )
 }

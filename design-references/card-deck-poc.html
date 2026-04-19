@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LIFEX — Card Deck POC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ── Design tokens (from variation-1-neumorphism) ─────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #1a1d25;
+  --bg-surface:   #1e2128;
+  --bg-elevated:  #22262f;
+  --shadow-dark:  rgba(0,0,0,0.55);
+  --shadow-light: rgba(255,255,255,0.04);
+  --accent:       #8b5cf6;
+  --text:         #e5e7eb;
+  --text-dim:     rgba(229,231,235,0.55);
+  --text-mute:    rgba(229,231,235,0.32);
+  --border:       rgba(255,255,255,0.06);
+  --neu-raised:   -6px -6px 14px var(--shadow-light), 6px 6px 14px var(--shadow-dark);
+  --neu-raised-sm:-3px -3px 8px  var(--shadow-light), 3px 3px 8px  var(--shadow-dark);
+  --neu-inset:    inset -3px -3px 7px var(--shadow-light), inset 3px 3px 7px var(--shadow-dark);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Page layout ──────────────────────────────────────────────────────────── */
+.poc-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+.poc-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.poc-header h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.poc-header p {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+.poc-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+  align-items: start;
+}
+
+/* ── Card deck column ────────────────────────────────────────────────────── */
+.deck-col {
+  position: relative;
+}
+
+.card-deck-wrapper {
+  position: relative;
+}
+
+/* Card row — flex, cards sit on a baseline */
+.card-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding-top: 60px;
+  padding-bottom: 6px;
+}
+
+/* ── Individual card ─────────────────────────────────────────────────────── */
+.module-card {
+  width: 110px;
+  height: 150px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 10px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 280ms ease,
+              filter 280ms ease,
+              opacity 280ms ease;
+  will-change: transform, filter, opacity;
+}
+
+/* Glass sheen — plastic/glass surface reflection */
+.module-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 55%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 16px 16px 0 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Top accent bar */
+.card-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+  opacity: 0.9;
+}
+
+/* Card content above sheen */
+.card-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+.card-icon svg { width: 28px; height: 28px; }
+
+.card-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.card-price {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.card-soon-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 3px 8px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.06);
+}
+
+/* Selected indicator — colored ✓ dot */
+.card-selected-dot {
+  position: absolute;
+  z-index: 3;
+  bottom: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+/* Surface shadow — cards resting on a table */
+.card-surface-shadow {
+  height: 8px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0) 100%);
+  border-radius: 0 0 10px 10px;
+  margin: -4px 6px 0;
+  pointer-events: none;
+}
+
+/* ── Expansion panel ──────────────────────────────────────────────────────── */
+.ep-wrapper {
+  position: relative;
+  margin-top: 18px;
+}
+
+/* Triangle pointer — sits above the panel, outside overflow */
+.ep-triangle {
+  position: absolute;
+  top: -8px;
+  left: 60px;
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 9px solid var(--bg-elevated);
+  opacity: 0;
+  transition: left 200ms ease, opacity 180ms ease;
+  z-index: 5;
+  pointer-events: none;
+  filter: drop-shadow(0 -2px 3px rgba(0,0,0,0.2));
+}
+
+/* Outer — overflow hidden for max-height animation */
+.ep-outer {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 300ms ease, opacity 220ms ease 50ms;
+}
+
+.ep-inner {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(128,128,128,0.15);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* Left: module info */
+.ep-info { flex: 1; min-width: 0; }
+
+.ep-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.ep-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ep-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.ep-tagline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+}
+.ep-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-dim);
+  max-width: 400px;
+}
+
+/* Right: price + CTA */
+.ep-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.ep-price {
+  text-align: right;
+}
+.ep-price-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.ep-price-mo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-mute);
+}
+
+/* STAAX plan chips */
+.ep-plans {
+  display: flex;
+  gap: 8px;
+}
+.plan-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: var(--bg-surface);
+  transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+  box-shadow: var(--neu-raised-sm);
+}
+.plan-chip.active {
+  box-shadow: none;
+}
+.plan-chip-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  transition: color 200ms ease;
+}
+.plan-chip.active .plan-chip-label { color: rgba(255,255,255,0.75); }
+.plan-chip-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  transition: color 200ms ease;
+}
+.plan-chip.active .plan-chip-price { color: #fff; }
+.plan-chip-desc {
+  font-size: 10px;
+  color: var(--text-mute);
+  transition: color 200ms ease;
+}
+.plan-chip.active .plan-chip-desc { color: rgba(255,255,255,0.65); }
+
+/* CTA button */
+.ep-cta {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 9px 20px;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  background: var(--bg-surface);
+  color: var(--text);
+  white-space: nowrap;
+  transition: all 200ms ease;
+}
+
+/* ── Cart panel (right column) ───────────────────────────────────────────── */
+.cart-panel {
+  background: var(--bg-surface);
+  border-radius: 14px;
+  box-shadow: var(--neu-raised);
+  padding: 22px 22px 26px;
+  position: sticky;
+  top: 32px;
+}
+
+.cart-svg-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+/* Cart tray bars overlay */
+.cart-tray-overlay {
+  /* JS positions this absolutely over the SVG tray */
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 3px 4px;
+  overflow: hidden;
+}
+
+.cart-bar {
+  height: 10px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  padding-left: 5px;
+  animation: barIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+.cart-bar span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  opacity: 0.9;
+}
+.cart-empty-tray {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 4px;
+  opacity: 0.25;
+}
+.cart-empty-tray svg { width: 16px; height: 16px; }
+.cart-empty-tray span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5px;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+}
+
+@keyframes barIn {
+  from { transform: translateY(-14px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+/* Cart count badge */
+.cart-badge {
+  position: absolute;
+  top: 2px;
+  right: 15px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  animation: badgePop 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes badgePop {
+  from { transform: scale(1.6); opacity: 0.6; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* Cart status */
+.cart-status {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 14px;
+}
+
+/* Cart add-on chips */
+.cart-addons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 280ms ease, opacity 220ms ease;
+}
+.cart-addons.visible {
+  max-height: 80px;
+  opacity: 1;
+}
+.addon-chip {
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: var(--neu-raised-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  transition: box-shadow 160ms ease, color 160ms ease;
+}
+.addon-chip.active {
+  box-shadow: var(--neu-inset);
+  color: var(--text-mute);
+}
+.addon-chip.discount { color: #34d399; }
+
+/* Cart total section */
+.cart-total-section {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 300ms ease, opacity 240ms ease;
+}
+.cart-total-section.visible {
+  max-height: 300px;
+  opacity: 1;
+}
+
+.cart-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin-bottom: 12px;
+}
+
+.cart-module-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.cart-module-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.cart-module-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cart-module-name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.cart-module-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.cart-module-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-mute);
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 120ms ease;
+}
+.cart-module-remove:hover { color: var(--text); }
+
+.cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.cart-total-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.cart-total-right { text-align: right; }
+.cart-total-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.cart-total-mo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+.cart-trial-note {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-mute);
+  margin: 10px 0 12px;
+}
+
+.cart-subscribe-btn {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 11px 0;
+  border-radius: 100px;
+  background: var(--bg);
+  box-shadow: var(--neu-raised);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+  transition: box-shadow 200ms ease;
+}
+.cart-subscribe-btn:hover {
+  box-shadow: var(--neu-inset);
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+</style>
+</head>
+<body>
+
+<div class="poc-wrap">
+  <div class="poc-header">
+    <h1>Individual Modules</h1>
+    <p>Hover to explore &nbsp;·&nbsp; Click to add to plan</p>
+  </div>
+
+  <div class="poc-layout">
+
+    <!-- ── LEFT: Card deck ─────────────────────────────────────────────── -->
+    <div class="deck-col">
+      <div class="card-deck-wrapper" id="deckWrapper">
+
+        <!-- Card row -->
+        <div class="card-row" id="cardRow"></div>
+
+        <!-- Surface shadow — cards resting on a table -->
+        <div class="card-surface-shadow"></div>
+
+        <!-- Expansion panel -->
+        <div class="ep-wrapper" id="epWrapper">
+          <div class="ep-triangle" id="epTriangle"></div>
+          <div class="ep-outer" id="epOuter">
+            <div class="ep-inner" id="epInner">
+              <!-- Left info -->
+              <div class="ep-info">
+                <div class="ep-title-row">
+                  <div class="ep-dot" id="epDot"></div>
+                  <span class="ep-name" id="epName"></span>
+                  <span class="ep-tagline" id="epTagline"></span>
+                </div>
+                <p class="ep-desc" id="epDesc"></p>
+              </div>
+              <!-- Right actions -->
+              <div class="ep-actions">
+                <!-- STAAX plan chips -->
+                <div class="ep-plans" id="epPlans" style="display:none">
+                  <button class="plan-chip" id="planLite" onclick="selectPlan('lite')">
+                    <span class="plan-chip-label">STAAX Lite</span>
+                    <span class="plan-chip-price">₹1,500/mo</span>
+                    <span class="plan-chip-desc">Up to 10 algos</span>
+                  </button>
+                  <button class="plan-chip" id="planPro" onclick="selectPlan('pro')">
+                    <span class="plan-chip-label">STAAX Pro</span>
+                    <span class="plan-chip-price">₹4,000/mo</span>
+                    <span class="plan-chip-desc">Up to 30 algos</span>
+                  </button>
+                </div>
+                <!-- Flat price -->
+                <div class="ep-price" id="epPrice" style="display:none">
+                  <span class="ep-price-val" id="epPriceVal"></span>
+                  <span class="ep-price-mo">/mo</span>
+                </div>
+                <!-- CTA -->
+                <button class="ep-cta" id="epCta" onclick="ctaClick()">Add to plan →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── RIGHT: Cart ─────────────────────────────────────────────────── -->
+    <div>
+      <div class="cart-panel">
+        <!-- Cart SVG with dynamic rim + tray overlay -->
+        <div class="cart-svg-wrap">
+          <div style="position:relative; width:200px; height:160px; flex-shrink:0;" id="cartSvgWrap">
+            <div id="cartBounce" style="width:100%;height:100%;transform-origin:center bottom;">
+              <svg viewBox="0 0 200 160" width="200" height="160" style="display:block">
+                <rect x="23" y="49" width="148" height="82" rx="12" fill="rgba(0,0,0,0.13)"/>
+                <rect x="20" y="45" width="148" height="82" rx="12" fill="#1a1d25" stroke="rgba(255,255,255,0.07)" stroke-width="1.5"/>
+                <rect x="21" y="46" width="146" height="18" rx="11" fill="rgba(255,255,255,0.035)"/>
+                <rect x="28" y="54" width="132" height="66" rx="8" fill="rgba(0,0,0,0.22)"/>
+                <rect x="28" y="54" width="132" height="5" rx="4" fill="rgba(0,0,0,0.1)"/>
+                <rect id="cartRim" x="20" y="45" width="148" height="6" rx="12" fill="transparent" opacity="0.8" style="transition:fill 400ms ease"/>
+                <path d="M 147 46 Q 177 46 177 20 Q 177 5 163 5" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5" stroke-linecap="round"/>
+                <path d="M 148 47 Q 175 47 175 20 Q 175 7 163 7" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="2.5" stroke-linecap="round"/>
+                <rect x="51" y="126" width="86" height="3" rx="1.5" fill="rgba(0,0,0,0.14)"/>
+                <circle cx="57"  cy="138" r="12" fill="#1a1d25" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+                <circle cx="57"  cy="138" r="5"  fill="rgba(255,255,255,0.055)"/>
+                <circle cx="57"  cy="138" r="2"  fill="rgba(0,0,0,0.18)"/>
+                <circle cx="131" cy="138" r="12" fill="#1a1d25" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+                <circle cx="131" cy="138" r="5"  fill="rgba(255,255,255,0.055)"/>
+                <circle cx="131" cy="138" r="2"  fill="rgba(0,0,0,0.18)"/>
+              </svg>
+            </div>
+
+            <!-- Tray bars overlay (left:28, top:54, w:132, h:66) -->
+            <div class="cart-tray-overlay" id="cartTray"
+                 style="left:28px;top:54px;width:132px;height:66px;">
+              <div class="cart-empty-tray" id="cartEmptyTray">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+                <span>empty</span>
+              </div>
+            </div>
+
+            <!-- Count badge -->
+            <div class="cart-badge" id="cartBadge">0</div>
+          </div>
+        </div>
+
+        <!-- Status label -->
+        <div class="cart-status" id="cartStatus">Click a module to add it</div>
+
+        <!-- Add-on chips -->
+        <div class="cart-addons" id="cartAddons">
+          <button class="addon-chip" id="addonAI" onclick="toggleAddon('ai')">+ ₹300 AI</button>
+          <button class="addon-chip" id="addonMobile" onclick="toggleAddon('mobile')">+ ₹200 Mobile</button>
+          <button class="addon-chip discount" id="addonBYOK" onclick="toggleAddon('byok')">− ₹100 BYOK</button>
+        </div>
+
+        <!-- Total section -->
+        <div class="cart-total-section" id="cartTotalSection">
+          <div class="cart-divider"></div>
+          <div class="cart-module-list" id="cartModuleList"></div>
+          <div class="cart-total-row">
+            <span class="cart-total-label">Total</span>
+            <div class="cart-total-right">
+              <div class="cart-total-val" id="cartTotalVal">₹0</div>
+              <div class="cart-total-mo">per month</div>
+            </div>
+          </div>
+          <div class="cart-trial-note">3-day free trial · Cancel anytime</div>
+          <button class="cart-subscribe-btn">Subscribe →</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.poc-layout -->
+</div><!-- /.poc-wrap -->
+
+<script>
+// ── Module data ───────────────────────────────────────────────────────────────
+
+const MODULES = [
+  {
+    id: 'staax',    name: 'STAAX',    color: '#FF6B00', rgb: '255,107,0',
+    price: 1000, display: '₹1,500+', y: 20,
+    tagline: 'Algorithmic trading for F&O and commodities',
+    desc: 'Multi-broker execution, re-entry engine, 24/7 kill switch and live reconciliation.',
+  },
+  {
+    id: 'invex',    name: 'INVEX',    color: '#00C9A7', rgb: '0,201,167',
+    price: 800,  display: '₹800',    y: 0,
+    tagline: 'Long-term investing, fully automated',
+    desc: 'Auto-SIP scheduler, IPO application bot, holdings with live XIRR tracking.',
+  },
+  {
+    id: 'budgex',   name: 'BUDGEX',   color: '#7C3AED', rgb: '124,58,237',
+    price: 500,  display: '₹500',    y: 15,
+    tagline: 'Voice-first expense tracking',
+    desc: 'Log expenses by voice from mobile. AI categorization and real-time budget alerts.',
+  },
+  {
+    id: 'finex',    name: 'FINEX',    color: '#F59E0B', rgb: '245,158,11',
+    price: 800,  display: '₹800',    y: 30,
+    tagline: 'Your personal CFO dashboard',
+    desc: 'LIFEX Score (0–100), daily AI briefing, net worth tracking and FI calculator.',
+  },
+  {
+    id: 'travex',   name: 'TRAVEX',   color: '#2dd4bf', rgb: '45,212,191',
+    price: 400,  display: '₹400',    y: 10,
+    tagline: 'Travel intelligence with a 3D globe',
+    desc: 'Interactive 3D globe, Gmail auto-sync for flight and train confirmations, AI travel buddy.',
+  },
+  {
+    id: 'healthex', name: 'HEALTHEX', color: '#ef4444', rgb: '239,68,68',
+    price: null, display: 'Coming soon', y: 35, soon: true,
+    tagline: 'Health tracking for peak performance',
+    desc: 'Biomarker tracking, wearable integration, AI health insights.',
+  },
+  {
+    id: 'histex',   name: 'HISTEX',   color: '#4488FF', rgb: '68,136,255',
+    price: null, display: 'Coming soon', y: 40, soon: true,
+    tagline: 'Historical data and backtesting',
+    desc: 'OHLCV data, strategy backtesting, personal decision archive.',
+  },
+]
+
+// Add-ons
+const ADDONS = {
+  ai:     { label: '+ ₹300 AI',     delta:  300 },
+  mobile: { label: '+ ₹200 Mobile', delta:  200 },
+  byok:   { label: '− ₹100 BYOK',  delta: -100 },
+}
+
+// Icons (SVG inner HTML, viewBox="0 0 28 28")
+const ICONS = {
+  staax: `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="3,22 9,13 15,17 22,6" stroke-width="2"/>
+    <polyline points="19,6 22,6 22,9" stroke-width="2"/>
+    <line x1="3" y1="25" x2="25" y2="25" stroke-width="1" opacity="0.3"/>
+  </svg>`,
+  invex: `<svg viewBox="0 0 28 28">
+    <rect x="3" y="17" width="5" height="8"  rx="1" fill="currentColor" opacity="0.45"/>
+    <rect x="11" y="11" width="5" height="14" rx="1" fill="currentColor" opacity="0.7"/>
+    <rect x="19" y="4"  width="5" height="21" rx="1" fill="currentColor"/>
+  </svg>`,
+  budgex: `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round">
+    <rect x="5" y="3" width="18" height="22" rx="2.5" stroke-width="1.8"/>
+    <line x1="9" y1="10" x2="19" y2="10" stroke-width="1.5"/>
+    <line x1="9" y1="14" x2="19" y2="14" stroke-width="1.5"/>
+    <line x1="9" y1="18" x2="14" y2="18" stroke-width="1.5"/>
+    <text x="14" y="20" font-size="6" text-anchor="middle" fill="currentColor" stroke="none" font-family="monospace">₹</text>
+  </svg>`,
+  finex: `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor">
+    <circle cx="14" cy="14" r="10" stroke-width="2.5" opacity="0.2"/>
+    <path d="M14 4 A10 10 0 0 1 24 14" stroke-width="2.5"/>
+    <path d="M24 14 A10 10 0 0 1 8.3 23.5" stroke-width="2.5" opacity="0.65"/>
+    <path d="M8.3 23.5 A10 10 0 0 1 14 4" stroke-width="2.5" opacity="0.3"/>
+    <circle cx="14" cy="14" r="4" stroke-width="1.5" opacity="0.35"/>
+  </svg>`,
+  travex: `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor">
+    <circle cx="14" cy="14" r="11" stroke-width="1.8"/>
+    <ellipse cx="14" cy="14" rx="5" ry="11" stroke-width="1.2" opacity="0.55"/>
+    <line x1="3" y1="14" x2="25" y2="14" stroke-width="1.2" opacity="0.55"/>
+    <line x1="7" y1="8"  x2="21" y2="8"  stroke-width="1"   opacity="0.35"/>
+    <line x1="7" y1="20" x2="21" y2="20" stroke-width="1"   opacity="0.35"/>
+  </svg>`,
+  healthex: `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 23 C12 20 3 15.5 3 9.5 A5.5 5.5 0 0 1 14 7.5 A5.5 5.5 0 0 1 25 9.5 C25 15.5 16 20 14 23Z" stroke-width="1.8"/>
+    <polyline points="7,13 10,10 13,16 17,8 20,13" stroke-width="1.4"/>
+  </svg>`,
+  histex: `<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round">
+    <circle cx="14" cy="14" r="11" stroke-width="1.8"/>
+    <polyline points="14,7 14,14 19,17" stroke-width="2.2"/>
+    <circle cx="14" cy="14" r="1.8" fill="currentColor" stroke="none"/>
+  </svg>`,
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let selected  = []   // module ids in cart
+let hovered   = null // module id being hovered
+let staaxPlan = 'lite'
+let selectedAddons = [] // addon ids
+
+// ── Build cards ───────────────────────────────────────────────────────────────
+function buildCards() {
+  const row = document.getElementById('cardRow')
+  row.innerHTML = ''
+
+  MODULES.forEach(m => {
+    const wrap = document.createElement('div')
+    wrap.id = `cw-${m.id}`
+    wrap.style.flexShrink = '0'
+
+    const card = document.createElement('div')
+    card.id = `card-${m.id}`
+    card.className = 'module-card'
+    card.style.background = `linear-gradient(160deg, rgba(${m.rgb},0.18) 0%, rgba(${m.rgb},0.06) 100%)`
+    card.style.borderColor = `rgba(${m.rgb},0.22)`
+    card.style.boxShadow   = `0 2px 0 rgba(0,0,0,0.35), 0 10px 28px rgba(0,0,0,0.5)`
+    card.style.transform   = `translateY(${m.y}px)`
+    if (m.soon) {
+      card.style.opacity = '0.38'
+      card.style.filter  = 'blur(2px)'
+      card.style.cursor  = 'default'
+      card.style.pointerEvents = 'none'
+    }
+
+    card.innerHTML = `
+      <div class="card-accent" style="background:${m.color}"></div>
+      <div class="card-body">
+        <div class="card-icon" style="color:${m.color}">${ICONS[m.id] || ''}</div>
+        <span class="card-name">${m.name}</span>
+        ${m.soon
+          ? `<span class="card-soon-badge">Soon</span>`
+          : `<span class="card-price" style="color:${m.color}">${m.display}</span>`
+        }
+      </div>
+      <div class="card-selected-dot" id="dot-${m.id}" style="background:${m.color}">✓</div>
+    `
+
+    if (!m.soon) {
+      card.addEventListener('mouseenter', () => onCardHover(m.id))
+      card.addEventListener('click', () => toggleModule(m.id))
+    }
+
+    wrap.appendChild(card)
+    row.appendChild(wrap)
+  })
+
+  // Deck-level mouse leave
+  document.getElementById('deckWrapper').addEventListener('mouseleave', onDeckLeave)
+}
+
+// ── Card hover logic ──────────────────────────────────────────────────────────
+function onCardHover(id) {
+  hovered = id
+  updateCards()
+  openPanel(id)
+}
+
+function onDeckLeave() {
+  hovered = null
+  updateCards()
+  closePanel()
+}
+
+function updateCards() {
+  MODULES.forEach(m => {
+    if (m.soon) return
+    const card = document.getElementById(`card-${m.id}`)
+    if (!card) return
+
+    if (hovered === m.id) {
+      card.style.transform   = `translateY(${m.y - 20}px) scale(1.1)`
+      card.style.boxShadow   = `0 22px 44px rgba(0,0,0,0.65), 0 0 32px rgba(${m.rgb},0.38), 0 2px 0 rgba(0,0,0,0.3)`
+      card.style.borderColor = `rgba(${m.rgb},0.65)`
+      card.style.filter      = 'none'
+      card.style.opacity     = '1'
+      card.style.zIndex      = '10'
+    } else if (hovered !== null) {
+      card.style.transform   = `translateY(${m.y + 4}px) scale(0.91)`
+      card.style.boxShadow   = `0 2px 0 rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.4)`
+      card.style.borderColor = `rgba(${m.rgb},0.15)`
+      card.style.filter      = 'blur(1.8px)'
+      card.style.opacity     = '0.52'
+      card.style.zIndex      = '1'
+    } else {
+      card.style.transform   = `translateY(${m.y}px)`
+      card.style.boxShadow   = `0 2px 0 rgba(0,0,0,0.35), 0 10px 28px rgba(0,0,0,0.5)`
+      card.style.borderColor = `rgba(${m.rgb},0.22)`
+      card.style.filter      = 'none'
+      card.style.opacity     = '1'
+      card.style.zIndex      = '1'
+    }
+
+    // Selected dot
+    const dot = document.getElementById(`dot-${m.id}`)
+    if (dot) dot.style.display = selected.includes(m.id) ? 'flex' : 'none'
+  })
+}
+
+// ── Expansion panel ───────────────────────────────────────────────────────────
+function openPanel(id) {
+  const m = MODULES.find(x => x.id === id)
+  if (!m || m.soon) return
+
+  // Populate content
+  document.getElementById('epDot').style.background = m.color
+  document.getElementById('epName').textContent      = m.name
+  document.getElementById('epName').style.color      = m.color
+  document.getElementById('epTagline').textContent   = m.tagline
+  document.getElementById('epDesc').textContent      = m.desc
+
+  const epInner = document.getElementById('epInner')
+  epInner.style.borderColor = `rgba(${m.rgb},0.2)`
+
+  if (id === 'staax') {
+    document.getElementById('epPlans').style.display = 'flex'
+    document.getElementById('epPrice').style.display = 'none'
+    updatePlanChips()
+  } else {
+    document.getElementById('epPlans').style.display = 'none'
+    document.getElementById('epPrice').style.display = 'block'
+    const priceVal = document.getElementById('epPriceVal')
+    priceVal.textContent  = m.display
+    priceVal.style.color  = m.color
+  }
+
+  updateCtaButton(id)
+
+  // Open
+  document.getElementById('epOuter').style.maxHeight = '220px'
+  document.getElementById('epOuter').style.opacity   = '1'
+  document.getElementById('epTriangle').style.opacity = '1'
+
+  // Position triangle
+  requestAnimationFrame(() => positionTriangle(id))
+}
+
+function closePanel() {
+  document.getElementById('epOuter').style.maxHeight = '0'
+  document.getElementById('epOuter').style.opacity   = '0'
+  document.getElementById('epTriangle').style.opacity = '0'
+}
+
+function positionTriangle(id) {
+  const wrap = document.getElementById(`cw-${id}`)
+  const epOuter = document.getElementById('epOuter')
+  if (!wrap || !epOuter) return
+
+  const wrapRect  = wrap.getBoundingClientRect()
+  const outerRect = epOuter.getBoundingClientRect()
+
+  const cardCenterX  = wrapRect.left + wrapRect.width / 2
+  const panelLeftX   = outerRect.left
+  const triangleLeft = Math.max(12, Math.min(outerRect.width - 24, cardCenterX - panelLeftX - 9))
+
+  document.getElementById('epTriangle').style.left = `${triangleLeft}px`
+}
+
+function updateCtaButton(id) {
+  const m = MODULES.find(x => x.id === id)
+  if (!m) return
+  const isIn = selected.includes(id)
+  const cta  = document.getElementById('epCta')
+  cta.textContent        = isIn ? 'Remove from plan' : 'Add to plan →'
+  cta.style.color        = isIn ? 'rgba(229,231,235,0.35)' : m.color
+  cta.style.background   = isIn ? 'var(--bg)' : 'var(--bg-surface)'
+  cta.style.boxShadow    = isIn ? 'var(--neu-inset)' : `var(--neu-raised-sm), 0 0 16px rgba(${m.rgb},0.28)`
+}
+
+function ctaClick() {
+  if (!hovered) return
+  toggleModule(hovered)
+}
+
+// ── Plan chips (STAAX) ────────────────────────────────────────────────────────
+function selectPlan(plan) {
+  staaxPlan = plan
+  updatePlanChips()
+}
+
+function updatePlanChips() {
+  const m = MODULES.find(x => x.id === 'staax')
+  ;['lite', 'pro'].forEach(p => {
+    const chip = document.getElementById(`plan${p.charAt(0).toUpperCase() + p.slice(1)}`)
+    if (!chip) return
+    if (p === staaxPlan) {
+      chip.classList.add('active')
+      chip.style.background   = m.color
+      chip.style.borderColor  = m.color
+      chip.style.boxShadow    = `0 0 12px rgba(${m.rgb},0.35)`
+    } else {
+      chip.classList.remove('active')
+      chip.style.background   = 'var(--bg-surface)'
+      chip.style.borderColor  = 'transparent'
+      chip.style.boxShadow    = 'var(--neu-raised-sm)'
+    }
+  })
+}
+
+// ── Module select/deselect ────────────────────────────────────────────────────
+function toggleModule(id) {
+  const m = MODULES.find(x => x.id === id)
+  if (!m || m.soon) return
+
+  if (selected.includes(id)) {
+    selected = selected.filter(x => x !== id)
+    wiggleCart()
+  } else {
+    selected = [...selected, id]
+    bounceCart()
+  }
+
+  updateCards()
+  updateCart()
+  if (hovered === id) updateCtaButton(id)
+}
+
+// ── Cart update ───────────────────────────────────────────────────────────────
+function updateCart() {
+  const hasModules = selected.length > 0
+  const count      = selected.length + selectedAddons.length
+
+  // Rim accent — color of last-added module
+  const rimColor = hasModules
+    ? (MODULES.find(m => m.id === selected[selected.length - 1])?.color ?? 'transparent')
+    : 'transparent'
+  document.getElementById('cartRim').setAttribute('fill', rimColor)
+
+  // Count badge
+  const badge = document.getElementById('cartBadge')
+  badge.textContent  = count
+  badge.style.display = count > 0 ? 'flex' : 'none'
+  if (count > 0) {
+    badge.style.animation = 'none'
+    badge.offsetHeight // reflow
+    badge.style.animation = 'badgePop 220ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+  }
+
+  // Status label
+  document.getElementById('cartStatus').textContent = hasModules ? 'Your cart' : 'Click a module to add it'
+
+  // Tray bars
+  const tray      = document.getElementById('cartTray')
+  const emptyTray = document.getElementById('cartEmptyTray')
+  tray.innerHTML  = ''
+
+  if (!hasModules) {
+    emptyTray.style.display = 'flex'
+    tray.appendChild(emptyTray)
+  } else {
+    emptyTray.style.display = 'none'
+    // Newest nearest rim (reverse order), stacked from bottom via flex-end
+    ;[...selected].reverse().forEach(id => {
+      const m = MODULES.find(x => x.id === id)
+      if (!m) return
+      const bar = document.createElement('div')
+      bar.className = 'cart-bar'
+      bar.style.background = `${m.color}cc`
+      bar.innerHTML = `<span>${m.id.slice(0,2).toUpperCase()}</span>`
+      tray.appendChild(bar)
+    })
+  }
+
+  // Add-on chips visibility
+  const addonsEl = document.getElementById('cartAddons')
+  addonsEl.classList.toggle('visible', hasModules)
+
+  // BYOK disabled if AI active
+  const byokBtn = document.getElementById('addonBYOK')
+  if (selectedAddons.includes('ai')) {
+    byokBtn.style.opacity       = '0.35'
+    byokBtn.style.pointerEvents = 'none'
+  } else {
+    byokBtn.style.opacity       = '1'
+    byokBtn.style.pointerEvents = 'auto'
+  }
+
+  // Total section
+  const totalSection = document.getElementById('cartTotalSection')
+  totalSection.classList.toggle('visible', hasModules)
+
+  // Module list
+  const list = document.getElementById('cartModuleList')
+  list.innerHTML = ''
+  selected.forEach(id => {
+    const m = MODULES.find(x => x.id === id)
+    if (!m) return
+    const row = document.createElement('div')
+    row.className = 'cart-module-row'
+    row.innerHTML = `
+      <span class="cart-module-dot" style="background:${m.color}"></span>
+      <span class="cart-module-name">${m.name}</span>
+      <span class="cart-module-price">₹${(m.price||0).toLocaleString('en-IN')}</span>
+      <button class="cart-module-remove" onclick="toggleModule('${m.id}')" title="Remove">×</button>
+    `
+    list.appendChild(row)
+  })
+
+  // Total
+  const moduleTotal = selected.reduce((s, id) => {
+    const m = MODULES.find(x => x.id === id)
+    return s + (m?.price || 0)
+  }, 0)
+  const addonTotal = selectedAddons.reduce((s, id) => s + (ADDONS[id]?.delta || 0), 0)
+  const total = Math.max(0, moduleTotal + addonTotal)
+  document.getElementById('cartTotalVal').textContent = `₹${total.toLocaleString('en-IN')}`
+}
+
+// ── Add-on toggle ─────────────────────────────────────────────────────────────
+function toggleAddon(id) {
+  if (id === 'byok' && selectedAddons.includes('ai')) return
+  if (selectedAddons.includes(id)) {
+    selectedAddons = selectedAddons.filter(x => x !== id)
+  } else {
+    selectedAddons = [...selectedAddons, id]
+    if (id === 'ai') selectedAddons = selectedAddons.filter(x => x !== 'byok')
+  }
+  // Update chip appearance
+  ;['ai','mobile','byok'].forEach(a => {
+    const el = document.getElementById(`addon${a.charAt(0).toUpperCase() + a.slice(1)}`)
+    if (el) el.classList.toggle('active', selectedAddons.includes(a))
+  })
+  updateCart()
+}
+
+// ── Cart animations ───────────────────────────────────────────────────────────
+function bounceCart() {
+  const el = document.getElementById('cartBounce')
+  if (!el) return
+  el.animate([
+    { transform: 'scaleY(1) scaleX(1)' },
+    { transform: 'scaleY(0.87) scaleX(1.07)' },
+    { transform: 'scaleY(1.09) scaleX(0.95)' },
+    { transform: 'scaleY(0.97) scaleX(1.01)' },
+    { transform: 'scaleY(1) scaleX(1)' },
+  ], { duration: 450, easing: 'ease-out' })
+}
+
+function wiggleCart() {
+  const el = document.getElementById('cartBounce')
+  if (!el) return
+  el.animate([
+    { transform: 'rotate(0deg)' },
+    { transform: 'rotate(-3.5deg)' },
+    { transform: 'rotate(3.5deg)' },
+    { transform: 'rotate(-2deg)' },
+    { transform: 'rotate(0deg)' },
+  ], { duration: 340, easing: 'ease-out' })
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildCards()
+updateCards()
+updateCart()
+updatePlanChips()
+</script>
+</body>
+</html>

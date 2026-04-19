@@ -145,6 +145,7 @@ section[id] {
 .status-beta     { background: var(--status-beta-bg);     color: var(--status-beta);     }
 .status-soon     { background: var(--status-soon-bg);     color: var(--status-soon);     border: 1px solid var(--status-soon-border); }
 
+
 /* ── Hero heading — theme-aware gradient ── */
 .hero-heading {
   background: linear-gradient(180deg, #ffffff 0%, #a8a8b3 100%);

@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LIFEX OS — Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#1a1d25;
+  --bg-surface:#1e2128;
+  --bg-elevated:#222631;
+  --shadow-dark:rgba(0,0,0,0.5);
+  --shadow-light:rgba(255,255,255,0.03);
+  --neu-raised:-8px -8px 16px var(--shadow-light),8px 8px 16px var(--shadow-dark);
+  --neu-raised-sm:-4px -4px 8px var(--shadow-light),4px 4px 8px var(--shadow-dark);
+  --neu-inset:inset -4px -4px 8px var(--shadow-light),inset 4px 4px 8px var(--shadow-dark);
+  --accent:#8b5cf6;
+  --accent-glow:rgba(139,92,246,0.35);
+  --text:#e5e7eb;
+  --text-dim:rgba(229,231,235,0.55);
+  --text-mute:rgba(229,231,235,0.35);
+  font-family:'Inter','Space Grotesk',system-ui,sans-serif;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── TOP NAV ── */
+.top-nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:64px;background:var(--bg);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 60px;
+}
+.nav-logo{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;
+  letter-spacing:0.04em;color:var(--text);
+}
+.nav-logo span{color:var(--accent)}
+.nav-signin{
+  font-size:13px;color:var(--text-dim);cursor:pointer;
+  transition:color 0.2s;
+}
+.nav-signin:hover{color:var(--text)}
+.nav-signin strong{color:var(--accent)}
+
+/* ── MOBILE DOTS ── */
+.mobile-dots{
+  display:none;
+  position:fixed;top:64px;left:0;right:0;z-index:99;
+  background:var(--bg);border-bottom:1px solid rgba(255,255,255,0.05);
+  padding:12px 24px;gap:10px;align-items:center;justify-content:center;
+}
+.mobile-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,0.1);transition:all 0.3s;
+}
+.mobile-dot.active{background:var(--accent);box-shadow:0 0 8px var(--accent-glow)}
+.mobile-dot.completed{background:var(--accent);opacity:0.5}
+
+/* ── LEFT COLUMN (PIPE) ── */
+.pipe-col{
+  position:fixed;left:0;top:0;bottom:0;width:220px;
+  pointer-events:none;z-index:50;overflow:visible;
+}
+.pipe-col svg{width:100%;height:100%;overflow:visible}
+
+/* ── RIGHT COLUMN ── */
+.content-col{
+  margin-left:220px;padding:64px 80px 200px;
+}
+
+/* ── STEP SECTIONS ── */
+.step-section{
+  min-height:100vh;padding:80px 0;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.step-header{margin-bottom:32px}
+.step-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;margin-bottom:12px;
+}
+.step-badge-num{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:600;font-size:11px;
+  background:rgba(255,255,255,0.06);
+  color:var(--text-mute);border:1px solid rgba(255,255,255,0.08);
+  transition:all 0.3s;
+}
+.step-section.is-active .step-badge-num{
+  background:var(--accent);color:#fff;border-color:transparent;
+  box-shadow:0 0 12px var(--accent-glow);
+}
+.step-section.is-completed .step-badge-num{
+  background:var(--accent);color:#fff;border-color:transparent;opacity:0.6;
+}
+.step-badge-label{color:var(--text-mute);transition:color 0.3s}
+.step-section.is-active .step-badge-label{color:var(--accent)}
+.step-title{
+  font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;
+  color:var(--text);margin-bottom:4px;
+}
+.step-section.is-completed .step-title{font-size:20px;color:var(--text-dim)}
+.step-check{color:var(--accent);margin-right:8px}
+
+.step-body{
+  max-height:0;overflow:hidden;
+  transition:max-height 600ms ease,
+             opacity 500ms ease 400ms,
+             transform 500ms ease 400ms;
+  opacity:0;transform:translateY(20px);
+}
+.step-body.is-open{
+  max-height:700px;opacity:1;transform:translateY(0);
+}
+
+/* ── COMPLETED STEP CLICK BACK ── */
+.step-section.is-completed .step-header{cursor:pointer}
+.step-section.is-completed .step-header:hover .step-title{color:var(--accent)}
+
+/* ── FORM ELEMENTS ── */
+.form-group{margin-bottom:20px}
+.form-label{
+  display:block;font-size:12px;font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.08em;color:var(--text-dim);margin-bottom:8px;
+  text-transform:uppercase;
+}
+.form-input{
+  width:100%;background:#1a1d25;border:none;
+  border-radius:12px;padding:14px 16px;color:var(--text);font-size:14px;
+  outline:none;
+  box-shadow:inset -4px -4px 8px rgba(255,255,255,0.03),inset 4px 4px 8px rgba(0,0,0,0.5);
+  transition:box-shadow 0.2s;
+}
+.form-input::placeholder{color:var(--text-mute)}
+.form-input:focus{
+  box-shadow:inset -4px -4px 8px rgba(255,255,255,0.03),inset 4px 4px 8px rgba(0,0,0,0.5),0 0 0 1.5px rgba(139,92,246,0.35);
+}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ── BUTTONS ── */
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--accent);color:#fff;border:none;cursor:pointer;
+  padding:14px 32px;border-radius:12px;font-size:15px;font-weight:600;
+  font-family:'Inter',sans-serif;
+  box-shadow:-4px -4px 8px rgba(255,255,255,0.03),4px 4px 8px rgba(0,0,0,0.5);
+  transition:transform 0.15s,box-shadow 0.15s;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:-6px -6px 12px rgba(255,255,255,0.04),6px 6px 12px rgba(0,0,0,0.55),0 4px 20px rgba(139,92,246,0.3)}
+.btn-primary:active{transform:translateY(0);box-shadow:inset -4px -4px 8px rgba(255,255,255,0.03),inset 4px 4px 8px rgba(0,0,0,0.5)}
+.btn-primary.full{width:100%;justify-content:center}
+.btn-ghost{
+  background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);
+  padding:14px 32px;border-radius:12px;cursor:pointer;font-size:14px;
+  transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── STEP 1 — CHOOSE PLAN ── */
+.module-list{
+  background:var(--bg-elevated);border-radius:16px;
+  box-shadow:var(--neu-raised);overflow:hidden;margin-bottom:32px;
+}
+.module-row{
+  display:grid;grid-template-columns:1fr auto;align-items:center;
+  padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;transition:background 0.15s;
+  position:relative;
+}
+.module-row:last-child{border-bottom:none}
+.module-row:hover{background:rgba(255,255,255,0.02)}
+.module-row.is-selected{background:rgba(139,92,246,0.06)}
+.module-left{display:flex;align-items:center;gap:16px}
+.module-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  transition:box-shadow 0.2s;
+}
+.module-row.is-selected .module-dot{box-shadow:0 0 10px currentColor}
+.module-info{display:flex;flex-direction:column;gap:2px}
+.module-name{font-weight:600;font-size:15px;color:var(--text)}
+.module-tag{font-size:12px;color:var(--text-mute)}
+.module-price{
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  color:var(--text-dim);text-align:right;
+}
+.module-check{
+  width:22px;height:22px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;flex-shrink:0;margin-left:16px;
+}
+.module-row.is-selected .module-check{
+  background:var(--accent);border-color:var(--accent);
+}
+.module-check svg{display:none;width:12px;height:12px}
+.module-row.is-selected .module-check svg{display:block}
+.coming-badge{
+  font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;
+  padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);
+  color:var(--text-mute);background:rgba(255,255,255,0.03);
+}
+
+/* STAAX inline plan selector */
+.staax-plans{
+  max-height:0;overflow:hidden;transition:max-height 0.25s ease,opacity 0.25s;
+  opacity:0;grid-column:1/-1;
+}
+.staax-plans.open{max-height:80px;opacity:1}
+.plan-chips{
+  display:flex;gap:10px;padding:12px 0 4px 40px;
+}
+.plan-chip{
+  padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;
+  border:1.5px solid rgba(255,255,255,0.1);background:var(--bg);
+  color:var(--text-dim);cursor:pointer;transition:all 0.2s;
+  font-family:'JetBrains Mono',monospace;
+}
+.plan-chip:hover{border-color:var(--accent);color:var(--accent)}
+.plan-chip.active{
+  border-color:var(--accent);background:rgba(139,92,246,0.12);color:var(--text);
+}
+
+/* Bundles */
+.bundles-label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--text-mute);margin-bottom:16px;
+}
+.bundles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+.bundle-card{
+  background:var(--bg-elevated);border-radius:14px;padding:20px;
+  border:1.5px solid rgba(255,255,255,0.06);cursor:pointer;
+  transition:all 0.2s;box-shadow:var(--neu-raised-sm);
+}
+.bundle-card:hover{border-color:rgba(139,92,246,0.3)}
+.bundle-card.is-selected{border-color:var(--accent);background:rgba(139,92,246,0.08)}
+.bundle-name{font-weight:700;font-family:'Space Grotesk',sans-serif;font-size:14px;margin-bottom:4px}
+.bundle-price{
+  font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;
+  color:var(--accent);margin-bottom:8px;
+}
+.bundle-price span{font-size:12px;color:var(--text-mute)}
+.bundle-modules{font-size:11px;color:var(--text-mute);line-height:1.6}
+
+/* ── STICKY BOTTOM BAR ── */
+.sticky-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:var(--bg-surface);border-top:1px solid rgba(255,255,255,0.08);
+  padding:16px 80px;display:flex;align-items:center;justify-content:space-between;
+  transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.sticky-bar.visible{transform:translateY(0)}
+.bar-summary{font-size:14px;color:var(--text-dim)}
+.bar-summary strong{color:var(--text);font-size:16px}
+.bar-price{
+  font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;
+  color:var(--accent);
+}
+
+/* ── STEP 3 — OTP ── */
+.otp-container{display:flex;gap:10px;margin-bottom:24px}
+.otp-box{
+  width:52px;height:60px;background:#1a1d25;border-radius:12px;
+  border:none;
+  text-align:center;font-size:24px;font-weight:600;color:var(--text);
+  outline:none;
+  box-shadow:inset -4px -4px 8px rgba(255,255,255,0.03),inset 4px 4px 8px rgba(0,0,0,0.5);
+  transition:box-shadow 0.2s;font-family:'JetBrains Mono',monospace;
+  caret-color:var(--accent);
+}
+.otp-box:focus{box-shadow:inset -4px -4px 8px rgba(255,255,255,0.03),inset 4px 4px 8px rgba(0,0,0,0.5),0 0 0 1.5px rgba(139,92,246,0.35)}
+.resend-row{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.resend-btn{
+  font-size:13px;background:none;border:none;color:var(--text-mute);
+  cursor:not-allowed;font-family:'Inter',sans-serif;
+}
+.resend-btn.active{color:var(--accent);cursor:pointer;text-decoration:underline}
+.resend-timer{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-mute)}
+.verify-email{
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  color:var(--accent);padding:10px 16px;background:rgba(139,92,246,0.08);
+  border-radius:8px;display:inline-block;margin-bottom:24px;
+}
+
+/* ── STEP 4 — REVIEW ── */
+.review-list{
+  background:var(--bg-elevated);border-radius:14px;box-shadow:var(--neu-raised-sm);
+  padding:8px 0;margin-bottom:24px;
+}
+.review-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.review-row:last-child{border-bottom:none}
+.review-name{font-size:14px;color:var(--text)}
+.review-price{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text-dim)}
+.addons-label{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--text-mute);margin-bottom:12px;
+}
+.addon-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.addon-chip{
+  padding:9px 18px;border-radius:20px;font-size:13px;
+  border:1.5px solid rgba(255,255,255,0.08);background:var(--bg);
+  color:var(--text-dim);cursor:pointer;transition:all 0.2s;
+  font-family:'JetBrains Mono',monospace;
+}
+.addon-chip:hover{border-color:var(--accent);color:var(--accent)}
+.addon-chip.active{border-color:var(--accent);background:rgba(139,92,246,0.1);color:var(--text)}
+.total-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px;background:rgba(139,92,246,0.06);border-radius:12px;
+  border:1px solid rgba(139,92,246,0.15);margin-bottom:24px;
+}
+.total-label{font-weight:600;font-size:15px}
+.total-price{
+  font-family:'JetBrains Mono',monospace;font-size:24px;
+  font-weight:600;color:var(--accent);
+}
+.total-price span{font-size:13px;color:var(--text-mute)}
+.edit-link{
+  font-size:13px;color:var(--accent);cursor:pointer;
+  text-decoration:underline;margin-bottom:24px;display:inline-block;
+}
+
+/* ── STEP 5 — PAYMENT ── */
+.order-summary{
+  background:var(--bg-elevated);border-radius:14px;box-shadow:var(--neu-raised-sm);
+  padding:20px;margin-bottom:28px;
+}
+.order-title{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--text-mute);margin-bottom:16px;
+}
+.order-line{
+  display:flex;justify-content:space-between;font-size:14px;
+  color:var(--text-dim);margin-bottom:10px;
+}
+.order-line.total{
+  border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;margin-top:4px;
+  font-weight:600;color:var(--text);font-size:16px;
+}
+.order-line .price{font-family:'JetBrains Mono',monospace}
+.razorpay-note{
+  font-size:12px;color:var(--text-mute);text-align:center;margin-top:16px;
+}
+
+/* ── STEP 6 — WELCOME ── */
+.welcome-center{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:40px 0;
+}
+.success-ring{
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(139,92,246,0.15);border:2px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 32px var(--accent-glow),0 0 64px rgba(139,92,246,0.15);
+  margin-bottom:32px;font-size:36px;
+  animation:successPulse 2s ease-in-out infinite;
+}
+@keyframes successPulse{
+  0%,100%{box-shadow:0 0 24px var(--accent-glow),0 0 48px rgba(139,92,246,0.1)}
+  50%{box-shadow:0 0 40px var(--accent-glow),0 0 80px rgba(139,92,246,0.2)}
+}
+.welcome-title{
+  font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:700;
+  margin-bottom:12px;
+}
+.welcome-sub{font-size:16px;color:var(--text-dim);margin-bottom:40px}
+.welcome-modules{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px;
+}
+.welcome-module{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:20px;
+  background:var(--bg-elevated);border:1px solid rgba(255,255,255,0.06);
+  font-size:13px;color:var(--text-dim);
+}
+.welcome-module .dot{width:8px;height:8px;border-radius:50%}
+.welcome-note{font-size:12px;color:var(--text-mute);margin-top:16px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .pipe-col{display:none}
+  .mobile-dots{display:flex}
+  .content-col{margin-left:0;padding:108px 24px 120px}
+  .bundles-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .top-nav{padding:0 24px}
+  .sticky-bar{padding:16px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-logo">LIFEX <span>OS</span></div>
+  <div class="nav-signin">Already a member? <strong>Sign in →</strong></div>
+</nav>
+
+<!-- MOBILE DOTS -->
+<div class="mobile-dots" id="mobile-dots">
+  <div class="mobile-dot active" data-idx="0"></div>
+  <div class="mobile-dot" data-idx="1"></div>
+  <div class="mobile-dot" data-idx="2"></div>
+  <div class="mobile-dot" data-idx="3"></div>
+  <div class="mobile-dot" data-idx="4"></div>
+  <div class="mobile-dot" data-idx="5"></div>
+</div>
+
+<!-- LEFT COLUMN — PIPE SVG -->
+<div class="pipe-col" id="pipe-col">
+<svg id="pipe-svg" viewBox="0 0 160 840" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="overflow:visible">
+  <defs>
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.8)" flood-opacity="0.8"/>
+      <feDropShadow dx="-1" dy="-1" stdDeviation="1" flood-color="rgba(255,255,255,0.04)" flood-opacity="1"/>
+    </filter>
+    <filter id="ballShadow" x="-100%" y="-100%" width="300%" height="300%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.7)"/>
+    </filter>
+    <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="ballGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.75)"/>
+      <stop offset="25%" stop-color="rgba(210,210,225,0.95)"/>
+      <stop offset="65%" stop-color="rgba(130,130,150,1)"/>
+      <stop offset="100%" stop-color="rgba(55,55,75,1)"/>
+    </radialGradient>
+    <!-- Purple flow gradient for progress fill -->
+    <linearGradient id="purpleFlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.85"/>
+    </linearGradient>
+    <!-- Moving highlight — light reflecting off flowing fluid -->
+    <linearGradient id="fluidHighlight" x1="0%" y1="0%" x2="0%" y2="100%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="40%" stop-color="rgba(255,255,255,0.35)"/>
+      <stop offset="60%" stop-color="rgba(255,255,255,0.35)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      <animateTransform attributeName="gradientTransform"
+        type="translate" from="0 -1" to="0 1"
+        dur="1.5s" repeatCount="indefinite"/>
+    </linearGradient>
+    <filter id="fluidGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Clip path for shimmer — progressRect height updated by JS -->
+    <clipPath id="progressClip">
+      <rect id="progressRect" x="0" y="0" width="160" height="0"/>
+    </clipPath>
+  </defs>
+
+  <!-- PIPE PATHS — 4-layer neumorphic inset tube -->
+  <!-- Layer 1: deepest shadow — carved into surface -->
+  <path
+    d="M 80 0
+       C 80 55, 80 65, 80 100
+       C 80 120, 55 155, 80 190
+       C 105 225, 105 235, 80 260
+       C 80 285, 55 320, 80 355
+       C 105 390, 105 400, 80 425
+       C 80 450, 55 485, 80 520
+       C 105 555, 105 565, 80 590
+       C 80 615, 55 650, 80 685
+       C 105 720, 105 730, 80 755
+       C 80 785, 80 800, 80 820"
+    stroke="#0a0c12" stroke-width="22" fill="none"/>
+
+  <!-- Layer 2: dark inner -->
+  <path
+    d="M 80 0
+       C 80 55, 80 65, 80 100
+       C 80 120, 55 155, 80 190
+       C 105 225, 105 235, 80 260
+       C 80 285, 55 320, 80 355
+       C 105 390, 105 400, 80 425
+       C 80 450, 55 485, 80 520
+       C 105 555, 105 565, 80 590
+       C 80 615, 55 650, 80 685
+       C 105 720, 105 730, 80 755
+       C 80 785, 80 800, 80 820"
+    stroke="#13151e" stroke-width="18" fill="none"/>
+
+  <!-- Layer 3: rim highlight (16px, wider than groove — 2px rim edges visible) -->
+  <path
+    d="M 80 0
+       C 80 55, 80 65, 80 100
+       C 80 120, 55 155, 80 190
+       C 105 225, 105 235, 80 260
+       C 80 285, 55 320, 80 355
+       C 105 390, 105 400, 80 425
+       C 80 450, 55 485, 80 520
+       C 105 555, 105 565, 80 590
+       C 80 615, 55 650, 80 685
+       C 105 720, 105 730, 80 755
+       C 80 785, 80 800, 80 820"
+    stroke="rgba(255,255,255,0.035)" stroke-width="16" fill="none"/>
+
+  <!-- Layer 3: the groove — same as --bg, covers center of rim highlight, creates inset depth -->
+  <path id="pipe-path"
+    d="M 80 0
+       C 80 55, 80 65, 80 100
+       C 80 120, 55 155, 80 190
+       C 105 225, 105 235, 80 260
+       C 80 285, 55 320, 80 355
+       C 105 390, 105 400, 80 425
+       C 80 450, 55 485, 80 520
+       C 105 555, 105 565, 80 590
+       C 80 615, 55 650, 80 685
+       C 105 720, 105 730, 80 755
+       C 80 785, 80 800, 80 820"
+    stroke="#1a1d25" stroke-width="12" fill="none"/>
+
+  <!-- Progress fill — gradient purple, grows as ball advances -->
+  <path id="progress-fill"
+    d="M 80 0
+       C 80 55, 80 65, 80 100
+       C 80 120, 55 155, 80 190
+       C 105 225, 105 235, 80 260
+       C 80 285, 55 320, 80 355
+       C 105 390, 105 400, 80 425
+       C 80 450, 55 485, 80 520
+       C 105 555, 105 565, 80 590
+       C 80 615, 55 650, 80 685
+       C 105 720, 105 730, 80 755
+       C 80 785, 80 800, 80 820"
+    stroke="url(#purpleFlow)" stroke-width="10" fill="none"
+    stroke-linecap="round" filter="url(#fluidGlow)"/>
+
+  <!-- Fluid highlight — smooth moving light reflection on the fluid surface -->
+  <path id="fluid-highlight"
+    d="M 80 0
+       C 80 55, 80 65, 80 100
+       C 80 120, 55 155, 80 190
+       C 105 225, 105 235, 80 260
+       C 80 285, 55 320, 80 355
+       C 105 390, 105 400, 80 425
+       C 80 450, 55 485, 80 520
+       C 105 555, 105 565, 80 590
+       C 80 615, 55 650, 80 685
+       C 105 720, 105 730, 80 755
+       C 80 785, 80 800, 80 820"
+    fill="none"
+    stroke="url(#fluidHighlight)"
+    stroke-width="4"
+    stroke-linecap="round"
+    clip-path="url(#progressClip)"/>
+
+  <!-- STEP NODES — positions: 100, 260, 425, 590, 755 (node Y values, 5 gaps for 6 nodes) -->
+  <!-- Node 1 -->
+  <g id="node-0" class="step-node" data-idx="0" style="pointer-events:all;cursor:default">
+    <circle id="node-pulse-0" cx="80" cy="100" r="20" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0">
+      <animate attributeName="r" values="16;24;16" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle id="node-bg-0" cx="80" cy="100" r="14" fill="#0d0f15" stroke="rgba(139,92,246,1)" stroke-width="2"/>
+    <text id="node-text-0" x="80" y="105" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="Inter">1</text>
+    <text x="100" y="105" fill="#e5e7eb" font-size="11" font-weight="600" font-family="JetBrains Mono">Choose Plan</text>
+  </g>
+
+  <!-- Node 2 -->
+  <g id="node-1" class="step-node" data-idx="1" style="pointer-events:all;cursor:default">
+    <circle id="node-pulse-1" cx="80" cy="260" r="20" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0"/>
+    <circle id="node-bg-1" cx="80" cy="260" r="14" fill="#1e2128" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text id="node-text-1" x="80" y="265" text-anchor="middle" fill="rgba(229,231,235,0.35)" font-size="12" font-family="Inter">2</text>
+    <text x="100" y="265" fill="rgba(229,231,235,0.35)" font-size="11" font-family="JetBrains Mono">Sign Up</text>
+  </g>
+
+  <!-- Node 3 -->
+  <g id="node-2" class="step-node" data-idx="2" style="pointer-events:all;cursor:default">
+    <circle id="node-pulse-2" cx="80" cy="425" r="20" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0"/>
+    <circle id="node-bg-2" cx="80" cy="425" r="14" fill="#1e2128" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text id="node-text-2" x="80" y="430" text-anchor="middle" fill="rgba(229,231,235,0.35)" font-size="12" font-family="Inter">3</text>
+    <text x="100" y="430" fill="rgba(229,231,235,0.35)" font-size="11" font-family="JetBrains Mono">Verify</text>
+  </g>
+
+  <!-- Node 4 -->
+  <g id="node-3" class="step-node" data-idx="3" style="pointer-events:all;cursor:default">
+    <circle id="node-pulse-3" cx="80" cy="590" r="20" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0"/>
+    <circle id="node-bg-3" cx="80" cy="590" r="14" fill="#1e2128" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text id="node-text-3" x="80" y="595" text-anchor="middle" fill="rgba(229,231,235,0.35)" font-size="12" font-family="Inter">4</text>
+    <text x="100" y="595" fill="rgba(229,231,235,0.35)" font-size="11" font-family="JetBrains Mono">Review</text>
+  </g>
+
+  <!-- Node 5 -->
+  <g id="node-4" class="step-node" data-idx="4" style="pointer-events:all;cursor:default">
+    <circle id="node-pulse-4" cx="80" cy="755" r="20" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0"/>
+    <circle id="node-bg-4" cx="80" cy="755" r="14" fill="#1e2128" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text id="node-text-4" x="80" y="760" text-anchor="middle" fill="rgba(229,231,235,0.35)" font-size="12" font-family="Inter">5</text>
+    <text x="100" y="760" fill="rgba(229,231,235,0.35)" font-size="11" font-family="JetBrains Mono">Payment</text>
+  </g>
+
+  <!-- Node 6 — bottom, need extra path point -->
+  <!-- We extend the path to 820, put node 6 at ~820 -->
+  <g id="node-5" class="step-node" data-idx="5" style="pointer-events:all;cursor:default">
+    <circle id="node-pulse-5" cx="80" cy="815" r="20" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0"/>
+    <circle id="node-bg-5" cx="80" cy="815" r="14" fill="#1e2128" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text id="node-text-5" x="80" y="820" text-anchor="middle" fill="rgba(229,231,235,0.35)" font-size="12" font-family="Inter">6</text>
+    <text x="100" y="820" fill="rgba(229,231,235,0.35)" font-size="11" font-family="JetBrains Mono">Welcome</text>
+  </g>
+
+  <!-- STEEL BALL -->
+  <g id="ball-group">
+    <circle id="steel-ball" cx="80" cy="30" r="10" fill="url(#ballGrad)" filter="url(#ballShadow)"/>
+    <circle id="ball-highlight" cx="77" cy="26" r="4" fill="rgba(255,255,255,0.6)"/>
+  </g>
+</svg>
+</div>
+
+<!-- RIGHT COLUMN -->
+<div class="content-col">
+
+  <!-- STEP 1: CHOOSE PLAN -->
+  <section class="step-section is-active" id="step-1">
+    <div class="step-header" onclick="handleHeaderClick(0)">
+      <div class="step-badge">
+        <div class="step-badge-num" id="badge-0">1</div>
+        <span class="step-badge-label">Step 1 of 6</span>
+      </div>
+      <h2 class="step-title" id="title-0"><span class="step-check" id="check-0" style="display:none">✓</span>Choose Plan</h2>
+    </div>
+    <div class="step-body is-open" id="body-0">
+      <div class="module-list" id="module-list">
+        <!-- STAAX -->
+        <div class="module-row" data-module="staax" onclick="toggleModule(this)">
+          <div class="module-left">
+            <div class="module-dot" style="background:#FF6B00;color:#FF6B00"></div>
+            <div class="module-info">
+              <span class="module-name">STAAX</span>
+              <span class="module-tag">Algo trading automation</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="module-price">from ₹1,500/mo</div>
+            <div class="module-check">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <!-- Inline plan chips (spans full row when open) -->
+          <div class="staax-plans" id="staax-plans">
+            <div class="plan-chips">
+              <div class="plan-chip active" onclick="selectPlan(event,'lite')" data-plan="lite">Lite · ₹1,500 · 10 algos</div>
+              <div class="plan-chip" onclick="selectPlan(event,'pro')" data-plan="pro">Pro · ₹4,000 · 30 algos</div>
+            </div>
+          </div>
+        </div>
+        <!-- INVEX -->
+        <div class="module-row" data-module="invex" onclick="toggleModule(this)">
+          <div class="module-left">
+            <div class="module-dot" style="background:#22DD88;color:#22DD88"></div>
+            <div class="module-info">
+              <span class="module-name">INVEX</span>
+              <span class="module-tag">Portfolio & investments</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="module-price">₹800/mo</div>
+            <div class="module-check">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <!-- BUDGEX -->
+        <div class="module-row" data-module="budgex" onclick="toggleModule(this)">
+          <div class="module-left">
+            <div class="module-dot" style="background:#7C3AED;color:#7C3AED"></div>
+            <div class="module-info">
+              <span class="module-name">BUDGEX</span>
+              <span class="module-tag">Budget & expense tracking</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="module-price">₹500/mo</div>
+            <div class="module-check">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <!-- FINEX -->
+        <div class="module-row" data-module="finex" onclick="toggleModule(this)">
+          <div class="module-left">
+            <div class="module-dot" style="background:#38BDF8;color:#38BDF8"></div>
+            <div class="module-info">
+              <span class="module-name">FINEX</span>
+              <span class="module-tag">Financial analytics & insights</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="module-price">₹800/mo</div>
+            <div class="module-check">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <!-- TRAVEX -->
+        <div class="module-row" data-module="travex" onclick="toggleModule(this)">
+          <div class="module-left">
+            <div class="module-dot" style="background:#F59E0B;color:#F59E0B"></div>
+            <div class="module-info">
+              <span class="module-name">TRAVEX</span>
+              <span class="module-tag">Travel planning & tracking</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="module-price">₹400/mo</div>
+            <div class="module-check">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <!-- HEALTHEX — coming soon -->
+        <div class="module-row" style="cursor:default;opacity:0.55">
+          <div class="module-left">
+            <div class="module-dot" style="background:#EC4899;color:#EC4899"></div>
+            <div class="module-info">
+              <span class="module-name">HEALTHEX</span>
+              <span class="module-tag">Health & wellness tracking</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="coming-badge">Coming soon</span>
+          </div>
+        </div>
+        <!-- HISTEX — coming soon -->
+        <div class="module-row" style="cursor:default;opacity:0.55">
+          <div class="module-left">
+            <div class="module-dot" style="background:#94A3B8;color:#94A3B8"></div>
+            <div class="module-info">
+              <span class="module-name">HISTEX</span>
+              <span class="module-tag">Personal history & journals</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="coming-badge">Coming soon</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bundles-label">— or pick a bundle</div>
+      <div class="bundles-grid" id="bundles-grid">
+        <div class="bundle-card" data-bundle="trader" onclick="selectBundle(this)">
+          <div class="bundle-name">LIFEX Trader</div>
+          <div class="bundle-price">₹4,750<span>/mo</span></div>
+          <div class="bundle-modules">STAAX Lite + INVEX + FINEX<br/>Save ₹550/mo</div>
+        </div>
+        <div class="bundle-card" data-bundle="money" onclick="selectBundle(this)">
+          <div class="bundle-name">LIFEX Money</div>
+          <div class="bundle-price">₹2,150<span>/mo</span></div>
+          <div class="bundle-modules">INVEX + BUDGEX + FINEX<br/>Save ₹450/mo</div>
+        </div>
+        <div class="bundle-card" data-bundle="premium" onclick="selectBundle(this)">
+          <div class="bundle-name">LIFEX Premium</div>
+          <div class="bundle-price">₹6,500<span>/mo</span></div>
+          <div class="bundle-modules">All modules (STAAX Pro)<br/>Save ₹1,500/mo</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: SIGN UP -->
+  <section class="step-section" id="step-2">
+    <div class="step-header" onclick="handleHeaderClick(1)">
+      <div class="step-badge">
+        <div class="step-badge-num" id="badge-1">2</div>
+        <span class="step-badge-label">Step 2 of 6</span>
+      </div>
+      <h2 class="step-title" id="title-1"><span class="step-check" id="check-1" style="display:none">✓</span>Sign Up</h2>
+    </div>
+    <div class="step-body" id="body-1">
+      <div style="max-width:480px">
+        <p style="font-size:15px;color:var(--text-dim);margin-bottom:32px">Create your LIFEX OS account</p>
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input class="form-input" type="email" placeholder="you@example.com" id="signup-email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" placeholder="Min 8 characters"/>
+        </div>
+        <div class="form-group" style="margin-bottom:32px">
+          <label class="form-label">Confirm password</label>
+          <input class="form-input" type="password" placeholder="Repeat password"/>
+        </div>
+        <button class="btn-primary" onclick="goToNextStep()">Continue →</button>
+        <p style="margin-top:20px;font-size:13px;color:var(--text-mute)">
+          Already have an account? <span style="color:var(--accent);cursor:pointer">Sign in →</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: VERIFY -->
+  <section class="step-section" id="step-3">
+    <div class="step-header" onclick="handleHeaderClick(2)">
+      <div class="step-badge">
+        <div class="step-badge-num" id="badge-2">3</div>
+        <span class="step-badge-label">Step 3 of 6</span>
+      </div>
+      <h2 class="step-title" id="title-2"><span class="step-check" id="check-2" style="display:none">✓</span>Verify</h2>
+    </div>
+    <div class="step-body" id="body-2">
+      <div style="max-width:400px">
+        <p style="font-size:15px;color:var(--text-dim);margin-bottom:16px">Check your inbox — we sent a code to</p>
+        <div class="verify-email" id="verify-email-display">user@example.com</div>
+        <p style="font-size:13px;color:var(--text-mute);margin-bottom:20px">Enter the 6-digit code below</p>
+        <div class="otp-container" id="otp-container">
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]"/>
+        </div>
+        <div class="resend-row">
+          <button class="resend-btn" id="resend-btn">Resend code</button>
+          <span class="resend-timer" id="resend-timer">in 30s</span>
+        </div>
+        <button class="btn-primary" onclick="goToNextStep()">Verify →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4: REVIEW -->
+  <section class="step-section" id="step-4">
+    <div class="step-header" onclick="handleHeaderClick(3)">
+      <div class="step-badge">
+        <div class="step-badge-num" id="badge-3">4</div>
+        <span class="step-badge-label">Step 4 of 6</span>
+      </div>
+      <h2 class="step-title" id="title-3"><span class="step-check" id="check-3" style="display:none">✓</span>Review</h2>
+    </div>
+    <div class="step-body" id="body-3">
+      <div style="max-width:560px">
+        <p style="font-size:15px;color:var(--text-dim);margin-bottom:24px">Review your selection</p>
+        <div class="review-list" id="review-list">
+          <div class="review-row" style="color:var(--text-mute);font-size:13px;font-style:italic">
+            <span>No modules selected</span><span></span>
+          </div>
+        </div>
+        <div class="addons-label">Add-ons</div>
+        <div class="addon-chips">
+          <div class="addon-chip" onclick="toggleAddon(this,'ai',300)" data-addon="ai" data-delta="300">AI Layer · +₹300</div>
+          <div class="addon-chip" onclick="toggleAddon(this,'mobile',200)" data-addon="mobile" data-delta="200">Mobile App · +₹200</div>
+          <div class="addon-chip" onclick="toggleAddon(this,'byok',-100)" data-addon="byok" data-delta="-100">BYOK · −₹100</div>
+        </div>
+        <div class="total-row">
+          <span class="total-label">Total</span>
+          <span class="total-price" id="review-total">₹0<span>/mo</span></span>
+        </div>
+        <span class="edit-link" onclick="goToStep(0)">← Edit selection</span>
+        <br/>
+        <button class="btn-primary" onclick="goToNextStep()">Confirm →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 5: PAYMENT -->
+  <section class="step-section" id="step-5">
+    <div class="step-header" onclick="handleHeaderClick(4)">
+      <div class="step-badge">
+        <div class="step-badge-num" id="badge-4">5</div>
+        <span class="step-badge-label">Step 5 of 6</span>
+      </div>
+      <h2 class="step-title" id="title-4"><span class="step-check" id="check-4" style="display:none">✓</span>Payment</h2>
+    </div>
+    <div class="step-body" id="body-4">
+      <div style="max-width:520px">
+        <p style="font-size:15px;color:var(--text-dim);margin-bottom:24px">Complete your subscription</p>
+        <div class="order-summary">
+          <div class="order-title">Order summary</div>
+          <div id="order-lines">
+            <div class="order-line"><span>No modules</span><span class="price">—</span></div>
+          </div>
+          <div class="order-line total">
+            <span>Total billed monthly</span>
+            <span class="price" id="payment-total">₹0</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Card number</label>
+          <input class="form-input" type="text" placeholder="1234 5678 9012 3456"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Expiry</label>
+            <input class="form-input" type="text" placeholder="MM / YY"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CVV</label>
+            <input class="form-input" type="text" placeholder="•••"/>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:28px">
+          <label class="form-label">Name on card</label>
+          <input class="form-input" type="text" placeholder="As printed on card"/>
+        </div>
+        <button class="btn-primary full" onclick="goToNextStep()">Subscribe Now →</button>
+        <p class="razorpay-note">Powered by Razorpay — integration coming soon</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 6: WELCOME -->
+  <section class="step-section" id="step-6">
+    <div class="step-header">
+      <div class="step-badge">
+        <div class="step-badge-num" id="badge-5">6</div>
+        <span class="step-badge-label">Step 6 of 6</span>
+      </div>
+      <h2 class="step-title" id="title-5"><span class="step-check" id="check-5" style="display:none">✓</span>Welcome</h2>
+    </div>
+    <div class="step-body" id="body-5">
+      <div class="welcome-center">
+        <div class="success-ring">✓</div>
+        <h1 class="welcome-title">You're in.</h1>
+        <p class="welcome-sub">Your LIFEX OS is ready.</p>
+        <div class="welcome-modules" id="welcome-modules">
+          <div class="welcome-module"><div class="dot" style="background:#8b5cf6"></div>LIFEX OS</div>
+        </div>
+        <button class="btn-primary" onclick="window.location.href='#'">Open LIFEX OS →</button>
+        <p class="welcome-note">You'll receive a confirmation email shortly.</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /content-col -->
+
+<!-- STICKY BOTTOM BAR -->
+<div class="sticky-bar" id="sticky-bar">
+  <div>
+    <div class="bar-summary" id="bar-summary">0 modules selected</div>
+    <div class="bar-price" id="bar-price">₹0 / month</div>
+  </div>
+  <button class="btn-primary" onclick="goToNextStep()">Continue →</button>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+const MODULE_PRICES = {
+  staax: { lite: 1500, pro: 4000 },
+  invex: 800, budgex: 500, finex: 800, travex: 400
+};
+const BUNDLE_PRICES = { trader: 4750, money: 2150, premium: 6500 };
+
+let state = {
+  currentStep: 0,
+  isAnimating: false,
+  selectedModules: new Set(),
+  staaxPlan: 'lite',
+  selectedBundle: null,
+  addons: { ai: false, mobile: false, byok: false },
+};
+
+const stepData = [
+  { title: 'Choose Plan' },
+  { title: 'Sign Up' },
+  { title: 'Verify' },
+  { title: 'Review' },
+  { title: 'Payment' },
+  { title: 'Welcome' },
+];
+
+// ─── PIPE / BALL SETUP ───────────────────────────────────
+const pipeSvg  = document.getElementById('pipe-svg');
+const pipePath = document.getElementById('pipe-path');
+const progFill = document.getElementById('progress-fill');
+const ballEl   = document.getElementById('steel-ball');
+const ballHL   = document.getElementById('ball-highlight');
+
+let totalLen = 0;
+
+// SVG viewport height. We use 840 (viewBox height).
+// Node Y positions in viewBox space: 100, 260, 425, 590, 755, 815
+// Corresponding fractions of total path length — calibrated after getTotalLength().
+const NODE_Y = [100, 260, 425, 590, 755, 815];
+let stepFractions = [];
+
+function initPipe() {
+  totalLen = pipePath.getTotalLength();
+  progFill.style.strokeDasharray = totalLen;
+  progFill.style.strokeDashoffset = totalLen;
+
+  // For each node Y, find the path fraction by binary search on getPointAtLength
+  stepFractions = NODE_Y.map(targetY => findFractionForY(targetY));
+
+  // Place ball at step 0 immediately
+  const pt = pipePath.getPointAtLength(stepFractions[0] * totalLen);
+  ballEl.setAttribute('cx', pt.x);
+  ballEl.setAttribute('cy', pt.y);
+  ballHL.setAttribute('cx', pt.x - 3);
+  ballHL.setAttribute('cy', pt.y - 4);
+}
+
+function findFractionForY(targetY) {
+  // Binary search: find t ∈ [0,1] such that getPointAtLength(t*L).y ≈ targetY
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 50; i++) {
+    const mid = (lo + hi) / 2;
+    const pt = pipePath.getPointAtLength(mid * totalLen);
+    if (pt.y < targetY) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+let currentFraction = 0;
+let ballRotation = 0;
+
+function moveBall(targetStep, onComplete) {
+  if (state.isAnimating) return;
+  state.isAnimating = true;
+
+  const startFrac = currentFraction;
+  const endFrac = stepFractions[targetStep];
+  const goingDown = endFrac > startFrac;
+  const duration = 2200;
+  const startTime = performance.now();
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function tick(now) {
+    const elapsed = now - startTime;
+    const raw = Math.min(elapsed / duration, 1);
+    const t = easeInOutCubic(raw);
+    const frac = startFrac + (endFrac - startFrac) * t;
+    const dist = frac * totalLen;
+    const pt = pipePath.getPointAtLength(dist);
+
+    ballEl.setAttribute('cx', pt.x);
+    ballEl.setAttribute('cy', pt.y);
+    ballHL.setAttribute('cx', pt.x - 3);
+    ballHL.setAttribute('cy', pt.y - 4);
+
+    // Rotation based on direction
+    ballRotation += goingDown ? 9 : -9;
+    ballEl.setAttribute('transform', `rotate(${ballRotation},${pt.x},${pt.y})`);
+    ballHL.setAttribute('transform', `rotate(${ballRotation},${pt.x - 3},${pt.y - 4})`);
+
+    // Progress fill + shimmer clip rect
+    progFill.style.strokeDashoffset = totalLen - (frac * totalLen);
+    document.getElementById('progressRect').setAttribute('height', pt.y + 14);
+
+    if (raw < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      currentFraction = endFrac;
+      state.isAnimating = false;
+      if (onComplete) onComplete();
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// ─── NODE VISUALS ─────────────────────────────────────────
+function updateNodes() {
+  for (let i = 0; i < 6; i++) {
+    const bg    = document.getElementById(`node-bg-${i}`);
+    const txt   = document.getElementById(`node-text-${i}`);
+    const pulse = document.getElementById(`node-pulse-${i}`);
+    const grp   = document.getElementById(`node-${i}`);
+    // Find label text elements (last child of group that's a <text>)
+    const labels = grp.querySelectorAll('text');
+    const label  = labels[labels.length - 1]; // the label text
+
+    if (i < state.currentStep) {
+      // completed
+      bg.setAttribute('fill', '#8b5cf6');
+      bg.setAttribute('stroke', 'rgba(139,92,246,0.4)');
+      bg.setAttribute('stroke-width', '2');
+      txt.textContent = '✓';
+      txt.setAttribute('fill', '#fff');
+      txt.setAttribute('font-size', '11');
+      label.setAttribute('fill', '#8b5cf6');
+      pulse.style.display = 'none';
+      grp.style.cursor = 'pointer';
+    } else if (i === state.currentStep) {
+      // active
+      bg.setAttribute('fill', '#0a0a0f');
+      bg.setAttribute('stroke', '#8b5cf6');
+      bg.setAttribute('stroke-width', '2.5');
+      txt.textContent = String(i + 1);
+      txt.setAttribute('fill', '#fff');
+      txt.setAttribute('font-size', '12');
+      label.setAttribute('fill', '#e5e7eb');
+      label.setAttribute('font-weight', '600');
+      pulse.style.display = '';
+      grp.style.cursor = 'default';
+
+      // animate pulse
+      const animR = pulse.querySelectorAll('animate')[0];
+      const animO = pulse.querySelectorAll('animate')[1];
+      if (!animR) {
+        // add animations if not present
+        const a1 = document.createElementNS('http://www.w3.org/2000/svg','animate');
+        a1.setAttribute('attributeName','r');
+        a1.setAttribute('values','16;24;16');
+        a1.setAttribute('dur','2s');
+        a1.setAttribute('repeatCount','indefinite');
+        const a2 = document.createElementNS('http://www.w3.org/2000/svg','animate');
+        a2.setAttribute('attributeName','opacity');
+        a2.setAttribute('values','0.5;0;0.5');
+        a2.setAttribute('dur','2s');
+        a2.setAttribute('repeatCount','indefinite');
+        pulse.appendChild(a1);
+        pulse.appendChild(a2);
+      }
+      pulse.setAttribute('opacity','0.5');
+    } else {
+      // upcoming
+      bg.setAttribute('fill', '#1e2128');
+      bg.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+      bg.setAttribute('stroke-width', '1');
+      txt.textContent = String(i + 1);
+      txt.setAttribute('fill', 'rgba(229,231,235,0.35)');
+      txt.setAttribute('font-size', '12');
+      label.setAttribute('fill', 'rgba(229,231,235,0.35)');
+      label.setAttribute('font-weight', 'normal');
+      pulse.setAttribute('opacity','0');
+      grp.style.cursor = 'default';
+    }
+  }
+}
+
+// Click on node to go back
+document.querySelectorAll('.step-node').forEach(grp => {
+  grp.addEventListener('click', function() {
+    const idx = parseInt(this.dataset.idx);
+    if (idx < state.currentStep) goToStep(idx);
+  });
+});
+
+// ─── STEP SECTION VISUALS ─────────────────────────────────
+function updateStepSections() {
+  for (let i = 0; i < 6; i++) {
+    const sec   = document.getElementById(`step-${i + 1}`);
+    const body  = document.getElementById(`body-${i}`);
+    const badge = document.getElementById(`badge-${i}`);
+    const check = document.getElementById(`check-${i}`);
+    const title = document.getElementById(`title-${i}`);
+
+    sec.classList.remove('is-active','is-completed');
+    body.classList.remove('is-open');
+
+    if (i < state.currentStep) {
+      sec.classList.add('is-completed');
+      check.style.display = 'inline';
+    } else if (i === state.currentStep) {
+      sec.classList.add('is-active');
+      check.style.display = 'none';
+      body.classList.add('is-open');
+    } else {
+      check.style.display = 'none';
+    }
+  }
+
+  // Mobile dots
+  document.querySelectorAll('.mobile-dot').forEach((dot, i) => {
+    dot.classList.remove('active','completed');
+    if (i < state.currentStep) dot.classList.add('completed');
+    else if (i === state.currentStep) dot.classList.add('active');
+  });
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function goToNextStep() {
+  if (state.currentStep >= 5 || state.isAnimating) return;
+  const next = state.currentStep + 1;
+
+  // Collapse current body immediately
+  document.getElementById(`body-${state.currentStep}`).classList.remove('is-open');
+
+  moveBall(next, () => {
+    state.currentStep = next;
+    updateNodes();
+    updateStepSections();
+    if (next === 3) populateReview();
+    if (next === 4) populatePayment();
+    if (next === 5) populateWelcome();
+    setTimeout(() => scrollToStep(state.currentStep), 80);
+  });
+}
+
+function goToStep(targetIdx) {
+  if (targetIdx >= state.currentStep || state.isAnimating) return;
+
+  // Collapse current body
+  document.getElementById(`body-${state.currentStep}`).classList.remove('is-open');
+
+  moveBall(targetIdx, () => {
+    state.currentStep = targetIdx;
+    updateNodes();
+    updateStepSections();
+    setTimeout(() => scrollToStep(state.currentStep), 80);
+  });
+}
+
+function handleHeaderClick(idx) {
+  const sec = document.getElementById(`step-${idx + 1}`);
+  if (sec.classList.contains('is-completed')) {
+    goToStep(idx);
+  }
+}
+
+function scrollToStep(stepIdx) {
+  const el = document.getElementById(`step-${stepIdx + 1}`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── STEP 1 — MODULE SELECTION ────────────────────────────
+function toggleModule(row) {
+  if (state.selectedBundle) {
+    // Deselect bundle first
+    state.selectedBundle = null;
+    document.querySelectorAll('.bundle-card').forEach(c => c.classList.remove('is-selected'));
+  }
+
+  const mod = row.dataset.module;
+  if (state.selectedModules.has(mod)) {
+    state.selectedModules.delete(mod);
+    row.classList.remove('is-selected');
+    if (mod === 'staax') {
+      document.getElementById('staax-plans').classList.remove('open');
+    }
+  } else {
+    state.selectedModules.add(mod);
+    row.classList.add('is-selected');
+    if (mod === 'staax') {
+      document.getElementById('staax-plans').classList.add('open');
+    }
+  }
+  updateBottomBar();
+}
+
+function selectPlan(e, plan) {
+  e.stopPropagation();
+  state.staaxPlan = plan;
+  document.querySelectorAll('.plan-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.plan === plan);
+  });
+  updateBottomBar();
+}
+
+function selectBundle(card) {
+  const bundle = card.dataset.bundle;
+  if (state.selectedBundle === bundle) {
+    state.selectedBundle = null;
+    card.classList.remove('is-selected');
+  } else {
+    state.selectedBundle = bundle;
+    document.querySelectorAll('.bundle-card').forEach(c => c.classList.remove('is-selected'));
+    card.classList.add('is-selected');
+    // Deselect individual modules
+    state.selectedModules.clear();
+    document.querySelectorAll('.module-row.is-selected').forEach(r => r.classList.remove('is-selected'));
+    document.getElementById('staax-plans').classList.remove('open');
+  }
+  updateBottomBar();
+}
+
+function calcTotal() {
+  if (state.selectedBundle) return BUNDLE_PRICES[state.selectedBundle];
+  let total = 0;
+  state.selectedModules.forEach(mod => {
+    if (mod === 'staax') total += MODULE_PRICES.staax[state.staaxPlan];
+    else total += MODULE_PRICES[mod] || 0;
+  });
+  return total;
+}
+
+function updateBottomBar() {
+  const count = state.selectedBundle ? 1 : state.selectedModules.size;
+  const total = calcTotal();
+  const bar = document.getElementById('sticky-bar');
+  const summary = document.getElementById('bar-summary');
+  const price = document.getElementById('bar-price');
+
+  if (count > 0) {
+    bar.classList.add('visible');
+    summary.textContent = state.selectedBundle
+      ? `Bundle: ${state.selectedBundle.charAt(0).toUpperCase() + state.selectedBundle.slice(1)}`
+      : `${count} module${count > 1 ? 's' : ''} selected`;
+    price.textContent = `₹${total.toLocaleString('en-IN')} / month`;
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+// ─── STEP 4 — REVIEW POPULATION ───────────────────────────
+function populateReview() {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+
+  let lines = [];
+  if (state.selectedBundle) {
+    const names = { trader:'LIFEX Trader', money:'LIFEX Money', premium:'LIFEX Premium' };
+    lines.push({ name: names[state.selectedBundle], price: BUNDLE_PRICES[state.selectedBundle] });
+  } else {
+    state.selectedModules.forEach(mod => {
+      let price = mod === 'staax' ? MODULE_PRICES.staax[state.staaxPlan] : MODULE_PRICES[mod];
+      let name  = mod.charAt(0).toUpperCase() + mod.slice(1);
+      if (mod === 'staax') name += ` (${state.staaxPlan === 'lite' ? 'Lite' : 'Pro'})`;
+      lines.push({ name, price });
+    });
+  }
+
+  if (lines.length === 0) {
+    list.innerHTML = '<div class="review-row" style="color:var(--text-mute);font-size:13px;font-style:italic"><span>No modules selected</span><span></span></div>';
+  } else {
+    lines.forEach(l => {
+      const row = document.createElement('div');
+      row.className = 'review-row';
+      row.innerHTML = `<span class="review-name">${l.name}</span><span class="review-price">₹${l.price.toLocaleString('en-IN')}/mo</span>`;
+      list.appendChild(row);
+    });
+  }
+  updateReviewTotal();
+}
+
+let addonDelta = 0;
+function toggleAddon(chip, key, delta) {
+  state.addons[key] = !state.addons[key];
+  chip.classList.toggle('active', state.addons[key]);
+  updateReviewTotal();
+}
+
+function updateReviewTotal() {
+  addonDelta = 0;
+  Object.keys(state.addons).forEach(k => {
+    if (state.addons[k]) {
+      if (k === 'ai') addonDelta += 300;
+      if (k === 'mobile') addonDelta += 200;
+      if (k === 'byok') addonDelta -= 100;
+    }
+  });
+  const total = calcTotal() + addonDelta;
+  document.getElementById('review-total').innerHTML = `₹${total.toLocaleString('en-IN')}<span>/mo</span>`;
+}
+
+// ─── STEP 5 — PAYMENT POPULATION ─────────────────────────
+function populatePayment() {
+  const linesEl = document.getElementById('order-lines');
+  linesEl.innerHTML = '';
+
+  let lines = [];
+  if (state.selectedBundle) {
+    const names = { trader:'LIFEX Trader', money:'LIFEX Money', premium:'LIFEX Premium' };
+    lines.push({ name: names[state.selectedBundle], price: BUNDLE_PRICES[state.selectedBundle] });
+  } else {
+    state.selectedModules.forEach(mod => {
+      let price = mod === 'staax' ? MODULE_PRICES.staax[state.staaxPlan] : MODULE_PRICES[mod];
+      let name  = mod.charAt(0).toUpperCase() + mod.slice(1);
+      lines.push({ name, price });
+    });
+  }
+
+  if (lines.length === 0) {
+    linesEl.innerHTML = '<div class="order-line"><span>No modules</span><span class="price">—</span></div>';
+  } else {
+    lines.forEach(l => {
+      const row = document.createElement('div');
+      row.className = 'order-line';
+      row.innerHTML = `<span>${l.name}</span><span class="price">₹${l.price.toLocaleString('en-IN')}</span>`;
+      linesEl.appendChild(row);
+    });
+    // addons
+    if (state.addons.ai)     { const r=document.createElement('div');r.className='order-line';r.innerHTML='<span>AI Layer</span><span class="price">+₹300</span>';linesEl.appendChild(r); }
+    if (state.addons.mobile) { const r=document.createElement('div');r.className='order-line';r.innerHTML='<span>Mobile App</span><span class="price">+₹200</span>';linesEl.appendChild(r); }
+    if (state.addons.byok)   { const r=document.createElement('div');r.className='order-line';r.innerHTML='<span>BYOK</span><span class="price">−₹100</span>';linesEl.appendChild(r); }
+  }
+
+  const total = calcTotal() + addonDelta;
+  document.getElementById('payment-total').textContent = `₹${total.toLocaleString('en-IN')}`;
+}
+
+// ─── STEP 6 — WELCOME POPULATION ─────────────────────────
+const MODULE_COLORS = { staax:'#FF6B00', invex:'#22DD88', budgex:'#7C3AED', finex:'#38BDF8', travex:'#F59E0B' };
+function populateWelcome() {
+  const el = document.getElementById('welcome-modules');
+  el.innerHTML = '';
+
+  if (state.selectedBundle) {
+    const bundleModules = {
+      trader: ['staax','invex','finex'],
+      money:  ['invex','budgex','finex'],
+      premium:['staax','invex','budgex','finex','travex'],
+    };
+    const names = { trader:'LIFEX Trader', money:'LIFEX Money', premium:'LIFEX Premium' };
+    const d = document.createElement('div');
+    d.className = 'welcome-module';
+    d.innerHTML = `<div class="dot" style="background:var(--accent)"></div>${names[state.selectedBundle]}`;
+    el.appendChild(d);
+    bundleModules[state.selectedBundle].forEach(mod => {
+      const m = document.createElement('div');
+      m.className = 'welcome-module';
+      m.innerHTML = `<div class="dot" style="background:${MODULE_COLORS[mod]}"></div>${mod.toUpperCase()}`;
+      el.appendChild(m);
+    });
+  } else {
+    if (state.selectedModules.size === 0) {
+      const d = document.createElement('div');
+      d.className = 'welcome-module';
+      d.innerHTML = `<div class="dot" style="background:var(--accent)"></div>LIFEX OS`;
+      el.appendChild(d);
+    } else {
+      state.selectedModules.forEach(mod => {
+        const d = document.createElement('div');
+        d.className = 'welcome-module';
+        d.innerHTML = `<div class="dot" style="background:${MODULE_COLORS[mod]||'#8b5cf6'}"></div>${mod.toUpperCase()}`;
+        el.appendChild(d);
+      });
+    }
+  }
+}
+
+// ─── OTP INPUT LOGIC ─────────────────────────────────────
+document.querySelectorAll('.otp-box').forEach((box, i, boxes) => {
+  box.addEventListener('input', e => {
+    const val = e.target.value.replace(/\D/g,'');
+    e.target.value = val;
+    if (val && i < boxes.length - 1) boxes[i + 1].focus();
+  });
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !e.target.value && i > 0) boxes[i - 1].focus();
+  });
+});
+
+// Resend timer
+let resendSeconds = 30;
+let resendInterval = null;
+function startResendTimer() {
+  resendSeconds = 30;
+  const btn = document.getElementById('resend-btn');
+  const timer = document.getElementById('resend-timer');
+  btn.classList.remove('active');
+  timer.textContent = `in ${resendSeconds}s`;
+  clearInterval(resendInterval);
+  resendInterval = setInterval(() => {
+    resendSeconds--;
+    if (resendSeconds <= 0) {
+      clearInterval(resendInterval);
+      btn.classList.add('active');
+      timer.textContent = '';
+    } else {
+      timer.textContent = `in ${resendSeconds}s`;
+    }
+  }, 1000);
+}
+
+// ─── SYNC EMAIL TO VERIFY STEP ────────────────────────────
+document.getElementById('signup-email').addEventListener('input', e => {
+  const v = e.target.value || 'user@example.com';
+  document.getElementById('verify-email-display').textContent = v;
+});
+
+// ─── PIPE COL HEIGHT ADJUSTMENT ──────────────────────────
+// The pipe SVG uses viewBox 0 0 160 840 and must scale to show all nodes.
+// The SVG is inside a position:fixed div, so it takes 100vh.
+// We rely on preserveAspectRatio="xMidYMid meet" so it centers + fits.
+// For the ball positioning, getPointAtLength works in viewBox coords, and
+// the SVG element handles scaling automatically via getAttribute('cx/cy') vs
+// the rendered position. We need to use SVG coordinate space for cx/cy.
+// Since ball cx/cy are SVG-space and the SVG element scales, this is correct.
+
+// ─── INIT ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Wait for fonts+layout
+  requestAnimationFrame(() => {
+    initPipe();
+    updateNodes();
+    updateStepSections();
+
+    // Start resend timer when step 3 becomes active
+    // (we'll reset it each time step 3 opens)
+  });
+});
+
+// Override goToStep / goToNextStep to start OTP timer when reaching step 3
+const _origNext = goToNextStep;
+function goToNextStep() {
+  const nextStep = state.currentStep + 1;
+  if (state.currentStep >= 5 || state.isAnimating) return;
+  const next = state.currentStep + 1;
+  document.getElementById(`body-${state.currentStep}`).classList.remove('is-open');
+  moveBall(next, () => {
+    state.currentStep = next;
+    updateNodes();
+    updateStepSections();
+    if (next === 2) startResendTimer();
+    if (next === 3) populateReview();
+    if (next === 4) populatePayment();
+    if (next === 5) populateWelcome();
+    setTimeout(() => scrollToStep(state.currentStep), 80);
+  });
+}
+</script>
+</body>
+</html>
