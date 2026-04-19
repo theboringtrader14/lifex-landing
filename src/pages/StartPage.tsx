@@ -654,7 +654,7 @@ function StepSection({ stepNum, title, state, goToStep, children, noCard }: Step
         <div style={{
           maxHeight: isActive ? 2000 : 0,
           opacity: isActive ? 1 : 0,
-          overflow: 'hidden',
+          overflow: isActive ? 'visible' : 'hidden',
           transform: isActive ? 'translateY(0)' : 'translateY(20px)',
           transition: 'max-height 600ms ease, opacity 500ms ease 400ms, transform 500ms ease 400ms',
         }}>
