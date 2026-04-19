@@ -34,9 +34,7 @@ export default function PricingCard({
         borderRadius: '24px',
         overflow: 'hidden',
         background: 'var(--bg)',
-        boxShadow: featured
-          ? 'var(--neu-raised), 0 0 60px var(--accent-glow)'
-          : 'var(--neu-raised)',
+        boxShadow: 'var(--neu-raised)',
         opacity: disabled ? 0.55 : 1,
         transition: 'box-shadow 200ms ease, transform 200ms ease',
       }}
